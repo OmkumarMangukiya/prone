@@ -65,14 +65,7 @@ model Session {
   @@map("sessions")
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
 
-  @@unique([identifier, token])
-  @@map("verificationtokens")
-}
 
 // Project Management Models
 model Project {
@@ -229,6 +222,18 @@ model Notification {
   @@map("notifications")
 }
 
+model OTP {
+  id        String   @id @default(cuid())
+  email     String
+  otp       String
+  type      OTPType  @default(EMAIL_VERIFICATION)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("otps")
+}
+
 // Enums
 enum ProjectStatus {
   ACTIVE
@@ -265,4 +270,9 @@ enum NotificationType {
   PROJECT_INVITE
   COMMENT_MENTION
   DUE_DATE_REMINDER
+}
+
+enum OTPType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
 }

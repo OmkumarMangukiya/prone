@@ -1,22 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const { status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    }
+  }, [status, router]);
+
   async function handleSignup() {
-    if (!email || !password) {
+    if (!email || !password || !name) {
       setError("Please fill in all fields");
       return;
     }
     if (password !== confirmPassword) {
-      setError("Password Should be same!");
+      setError("Passwords do not match!");
       return;
     }
     setLoading(true);
@@ -25,17 +37,30 @@ export default function Signup() {
     try {
       const response = await axios.post("/api/auth/signup", {
         email: email,
+        name: name,
         password: password,
       });
 
       if (response.data.success) {
-        window.location.href = "/dashboard";
+        // Redirect to email verification page with email parameter
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
       }
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Signup failed");
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -51,6 +76,14 @@ export default function Signup() {
       )}
 
       <div className="space-y-4">
+        <input
+          type="text"
+          placeholder="Full Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
         <input
           type="email"
           placeholder="Email"
@@ -72,8 +105,10 @@ export default function Signup() {
           placeholder="Confirm Password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
+          onKeyPress={(e) => e.key === "Enter" && handleSignup()}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
         <button
           onClick={handleSignup}
           disabled={loading}
@@ -81,6 +116,18 @@ export default function Signup() {
         >
           {loading ? "Signing up..." : "Sign up"}
         </button>
+
+        <div className="text-center mt-4">
+          <span className="text-sm text-gray-600">
+            Already have an account?{" "}
+          </span>
+          <a
+            href="/signin"
+            className="text-blue-600 hover:text-blue-800 text-sm"
+          >
+            Sign in
+          </a>
+        </div>
       </div>
     </div>
   );
