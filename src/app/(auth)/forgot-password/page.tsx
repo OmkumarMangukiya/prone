@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
@@ -13,6 +14,7 @@ export default function ForgotPassword() {
   const [error, setError] = useState("");
   const [step, setStep] = useState(1); // 1:email, 2:OTP and new password
   const [sendingOtp, setSendingOtp] = useState(false);
+  const [success, setSuccess] = useState("");
   const router = useRouter();
 
   async function handleSendOtp() {
@@ -34,8 +36,8 @@ export default function ForgotPassword() {
         setStep(2);
         setError("");
       }
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Failed to send OTP");
+    } catch (error: unknown) {
+      setError((error as any)?.response?.data?.message || "Failed to send OTP");
     } finally {
       setSendingOtp(false);
     }
@@ -68,11 +70,30 @@ export default function ForgotPassword() {
       });
 
       if (response.data.success) {
-        // Redirect to signin with success message
-        router.push("/signin?message=Password reset successfully");
+        setSuccess("Password reset successfully! Signing you in...");
+
+        // Auto-signin using NextAuth with new password
+        const result = await signIn("credentials", {
+          email,
+          password: newPassword,
+          redirect: false,
+        });
+
+        if (result?.ok) {
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 1500);
+        } else {
+          // Fallback to signin page if auto-signin fails
+          setTimeout(() => {
+            router.push("/signin?message=Password reset successfully");
+          }, 2000);
+        }
       }
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Password reset failed");
+    } catch (error: unknown) {
+      setError(
+        (error as any)?.response?.data?.message || "Password reset failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -87,6 +108,12 @@ export default function ForgotPassword() {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+          {success}
         </div>
       )}
 

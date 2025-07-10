@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { signIn } from "next-auth/react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -45,8 +46,8 @@ export default function VerifyEmail() {
       } else {
         setError(response.data.message || "Failed to send OTP");
       }
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Failed to send OTP");
+    } catch (error: unknown) {
+      setError((error as any)?.response?.data?.message || "Failed to send OTP");
     } finally {
       setSendingOtp(false);
     }
@@ -69,16 +70,21 @@ export default function VerifyEmail() {
       });
 
       if (response.data.success) {
-        if (response.data.autoSignIn && response.data.user) {
-          // Store user data for session (in a real app, you'd use proper session management)
-          localStorage.setItem("user", JSON.stringify(response.data.user));
+        setSuccess("Email verified successfully! Signing you in...");
 
-          setSuccess("Email verified successfully! Signing you in...");
+        // Auto-signin using NextAuth
+        const result = await signIn("auto-signin", {
+          email,
+          verified: "true",
+          redirect: false,
+        });
+
+        if (result?.ok) {
           setTimeout(() => {
             router.push("/dashboard");
           }, 1500);
         } else {
-          setSuccess("Email verified successfully! Redirecting to sign in...");
+          // Fallback to signin page if auto-signin fails
           setTimeout(() => {
             router.push("/signin?message=Email verified successfully");
           }, 2000);
@@ -86,8 +92,10 @@ export default function VerifyEmail() {
       } else {
         setError(response.data.message || "Invalid OTP");
       }
-    } catch (error: any) {
-      setError(error.response?.data?.message || "OTP verification failed");
+    } catch (error: unknown) {
+      setError(
+        (error as any)?.response?.data?.message || "OTP verification failed"
+      );
     } finally {
       setLoading(false);
     }

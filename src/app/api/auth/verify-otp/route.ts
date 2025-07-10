@@ -43,19 +43,14 @@ export async function POST(request: Request) {
 
         // If email verification, update user's emailVerified status
         if (type === 'EMAIL_VERIFICATION') {
-            const updatedUser = await prisma.user.update({
+            await prisma.user.update({
                 where: { email },
                 data: { emailVerified: new Date() },
             });
 
-            // Return user data (excluding password) for auto-signin
-            const { password, ...userData } = updatedUser;
-
             return NextResponse.json({
                 success: true,
                 message: "Email verified successfully",
-                user: userData,
-                autoSignIn: true,
             });
         }
 

@@ -3,6 +3,26 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prismaClient";
 
+// Helper function for auto-signin after verification
+export async function createAutoSigninToken(email: string) {
+    const user = await prisma.user.findUnique({
+        where: { email },
+    });
+
+    if (!user || !user.emailVerified) {
+        throw new Error("User not found or not verified");
+    }
+
+    // Return user data for token generation
+    return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        image: user.avatar,
+        emailVerified: user.emailVerified,
+    };
+}
+
 export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
@@ -46,6 +66,37 @@ export const authOptions: NextAuthOptions = {
                     emailVerified: user.emailVerified,
                 };
             }
+        }),
+        // Special provider for auto-signin after verification
+        CredentialsProvider({
+            id: "auto-signin",
+            name: "auto-signin",
+            credentials: {
+                email: { label: "Email", type: "email" },
+                verified: { label: "Verified", type: "text" }
+            },
+            async authorize(credentials) {
+                if (!credentials?.email || credentials?.verified !== "true") {
+                    return null;
+                }
+
+                // Find verified user
+                const user = await prisma.user.findUnique({
+                    where: { email: credentials.email },
+                });
+
+                if (!user || !user.emailVerified) {
+                    return null;
+                }
+
+                return {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    image: user.avatar,
+                    emailVerified: user.emailVerified,
+                };
+            }
         })
     ],
     session: {
@@ -70,7 +121,7 @@ export const authOptions: NextAuthOptions = {
     },
     pages: {
         signIn: "/signin",
-        error: "/signin", 
+        error: "/signin",
     },
     secret: process.env.NEXTAUTH_SECRET,
 };

@@ -60,7 +60,7 @@ export default function Signin() {
       } else if (result?.ok) {
         router.push("/dashboard");
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
