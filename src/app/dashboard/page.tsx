@@ -2,18 +2,32 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import DevTools from "../../components/DevTools";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
     }
   }, [status, router]);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showUserMenu && !target.closest(".relative")) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showUserMenu]);
 
   if (status === "loading") {
     return (
@@ -45,12 +59,67 @@ export default function Dashboard() {
                   {session.user.name || session.user.email}
                 </p>
               </div>
-              <button
-                onClick={() => signOut({ callbackUrl: "/signin" })}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                Sign Out
-              </button>
+
+              {/* User Menu Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {session.user.image ? (
+                    <img
+                      src={session.user.image}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                      {(session.user.name || session.user.email || "U")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
+                  )}
+                  <svg
+                    className={`w-4 h-4 transition-transform ${
+                      showUserMenu ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {/* Dropdown Menu */}
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          router.push("/dashboard/profile");
+                          setShowUserMenu(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Profile Settings
+                      </button>
+                      <hr className="my-1" />
+                      <button
+                        onClick={() => signOut({ callbackUrl: "/signin" })}
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

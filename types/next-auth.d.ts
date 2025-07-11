@@ -18,5 +18,7 @@ declare module "next-auth/jwt" {
     interface JWT extends DefaultJWT {
         id: string;
         emailVerified: Date | null;
+        name?: string | null;
+        picture?: string | null;
     }
 }
