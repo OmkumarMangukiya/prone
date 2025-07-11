@@ -5,7 +5,6 @@ The authentication is not handled by a single system, but by two distinct sets o
 1.  **Custom API Routes (The "Pre-Checks"):** These are the endpoints you see in directories like `/src/app/api/auth/signup` and `/src/app/api/auth/signin`. Their job is to handle the initial business logic, user interaction, and validation _before_ an official session is created.
 2.  **NextAuth.js (The "Official Session Manager"):** This is the core, secure session management system powered by the NextAuth.js library. It is handled by the catch-all route at `/src/app/api/auth/[...nextauth]/route.ts` and configured by `lib/auth.ts`. Its sole responsibility is to create, verify, and manage user sessions (JWTs).
 
----
 
 ## Detailed Authentication Flows
 
@@ -74,7 +73,7 @@ sequenceDiagram
 5.  **Final Validation:** NextAuth.js uses the configuration from `lib/auth.ts` to run its `authorize` function. This function acts as a final security gate, re-validating the credentials.
 6.  **Session Creation:** Upon successful authorization, NextAuth.js generates a secure JWT, sets it as an HTTP-only cookie in the browser, and establishes the user's session.
 
----
+
 
 ## Key Files and Their Roles
 

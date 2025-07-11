@@ -235,38 +235,48 @@ prone/
 
 ## Backend Documentation
 
-### Project Structure
+This section details the key directories and files that power the backend functionality of Prone.
 
-#### `/lib` - Core Libraries
+### `/lib` - Core Libraries & Utilities
 
-- **`emailService.ts`** - Email sending service with OTP generation and HTML templates
-- **`prismaClient.ts`** - Database client configuration and connection
+- **`auth.ts`** - Central configuration for NextAuth.js, including providers, callbacks, and session strategy.
+- **`emailService.ts`** - Email sending service with OTP generation and HTML templates.
+- **`prismaClient.ts`** - Database client configuration and connection.
 
-#### `/prisma` - Database Management
+### `/prisma` - Database Management
 
-- **`schema.prisma`** - Database schema definition with models and relationships
-- **`seed.ts`** - Database seeding script for initial data
-- **`migrations/`** - Database migration files for schema versioning
+- **`schema.prisma`** - Database schema definition with models and relationships.
+- **`seed.ts`** - Database seeding script for initial data.
+- **`migrations/`** - Database migration files for schema versioning.
 
-#### `/src/app/api` - API Routes
+### `/src/app/api` - API Routes
 
-- **`auth/signin/route.ts`** - User authentication and login endpoint
-- **`auth/signup/route.ts`** - User registration and account creation
-- **`auth/send-otp/route.ts`** - OTP generation and email sending for verification/reset
-- **`auth/verify-otp/route.ts`** - OTP validation for email verification
-- **`auth/reset-password/route.ts`** - Password reset functionality with OTP verification
-- **`dev/delete-user/route.ts`** - Development utility for user deletion
+- **`auth/[...nextauth]/route.ts`** - Core NextAuth.js handler for session management, sign-in, sign-out, etc.
+- **`auth/signin/route.ts`** - Custom endpoint for pre-validating user credentials before handing off to NextAuth.js.
+- **`auth/signup/route.ts`** - Handles new user registration and triggers email verification.
+- **`auth/send-otp/route.ts`** - Manages OTP generation and sending for verification and password resets.
+- **`auth/verify-otp/route.ts`** - Validates OTPs submitted by users.
+- **`auth/reset-password/route.ts`** - Handles the password reset process after OTP verification.
+- **`user/profile/route.ts`** - API endpoint for managing user profile data (fetching, updating).
+- **`user/profile/change-password/route.ts`** - Securely handles requests to change a user's password.
+- **`dev/delete-user/route.ts`** - Development utility for deleting users, useful for testing.
 
-#### `/src/app/(auth)` - Authentication Pages
+### `/src/app/(auth)` - Authentication Pages (UI)
 
-- **`signin/page.tsx`** - User login interface
-- **`signup/page.tsx`** - User registration form
-- **`verify-email/page.tsx`** - Email verification interface
-- **`forgot-password/page.tsx`** - Password reset request page
+- **`signin/page.tsx`** - User login interface.
+- **`signup/page.tsx`** - User registration form.
+- **`verify-email/page.tsx`** - Interface for users to enter their OTP to verify their email.
+- **`forgot-password/page.tsx`** - Page for users to request a password reset.
 
-#### `/src/components` - Reusable Components
+### `/src/app/dashboard` - Main Application Pages (UI)
 
-- **`DevTools.tsx`** - Development utilities and debugging tools (Remove in production)
+- **`page.tsx`** - The main dashboard view after a user logs in.
+- **`profile/page.tsx`** - User profile page where users can view and edit their information.
+
+### `/src/components` - Reusable Components
+
+- **`Providers.tsx`** - Wraps the application with necessary context providers (e.g., NextAuth SessionProvider).
+- **`DevTools.tsx`** - Development utilities and debugging tools (should be removed in production).
 
 ### Security Features
 
