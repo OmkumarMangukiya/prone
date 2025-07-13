@@ -6,6 +6,31 @@ const prisma = new PrismaClient()
 async function main() {
     console.log('🌱 Seeding database...')
 
+    // Create default categories
+    const defaultCategories = [
+        { name: "Software Development", color: "#3B82F6" },
+        { name: "Marketing Campaign", color: "#10B981" },
+        { name: "Product Launch", color: "#8B5CF6" },
+        { name: "Website Redesign", color: "#F59E0B" },
+        { name: "Data Analysis", color: "#EF4444" },
+        { name: "Research & Development", color: "#06B6D4" },
+        { name: "Event Planning", color: "#EC4899" },
+        { name: "Content Creation", color: "#84CC16" },
+        { name: "Business Development", color: "#6366F1" },
+        { name: "HR Initiatives", color: "#F97316" },
+        { name: "Customer Support Improvement", color: "#14B8A6" },
+        { name: "Other", color: "#6B7280" },
+    ];
+
+    console.log('Creating default categories...')
+    for (const categoryData of defaultCategories) {
+        await prisma.category.upsert({
+            where: { name: categoryData.name },
+            update: {},
+            create: categoryData,
+        });
+    }
+
     // Create demo users
     const hashedPassword = await bcrypt.hash('password123', 10)
 

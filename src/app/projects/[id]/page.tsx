@@ -1,0 +1,715 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter, useParams } from "next/navigation";
+import {
+  ArrowLeft,
+  Settings,
+  Users,
+  MoreVertical,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Pause,
+  Archive,
+  Edit2,
+  Trash2,
+  Plus,
+} from "lucide-react";
+
+interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  status: "ACTIVE" | "ON_HOLD" | "COMPLETED" | "ARCHIVED";
+  color?: string;
+  createdAt: string;
+  updatedAt: string;
+  owner: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  members: Array<{
+    id: string;
+    role: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      avatar?: string;
+    };
+  }>;
+  tasks: Array<{
+    id: string;
+    title: string;
+    status: string;
+    priority: string;
+    dueDate?: string;
+    assignee?: {
+      id: string;
+      name: string;
+      email: string;
+      avatar?: string;
+    };
+  }>;
+  _count: {
+    tasks: number;
+    members: number;
+  };
+}
+
+export default function ProjectPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const params = useParams();
+  const projectId = params.id as string;
+
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/signin");
+      return;
+    }
+
+    if (status === "authenticated" && projectId) {
+      fetchProject();
+    }
+  }, [status, router, projectId]);
+
+  const fetchProject = async () => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setProject(data.project);
+      } else {
+        setError(data.error || "Failed to fetch project");
+      }
+    } catch (err) {
+      setError("An error occurred while fetching the project");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "ACTIVE":
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case "ON_HOLD":
+        return <Pause className="w-5 h-5 text-yellow-500" />;
+      case "COMPLETED":
+        return <CheckCircle className="w-5 h-5 text-blue-500" />;
+      case "ARCHIVED":
+        return <Archive className="w-5 h-5 text-gray-500" />;
+      default:
+        return <Clock className="w-5 h-5 text-gray-500" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "ACTIVE":
+        return "bg-green-100 text-green-800";
+      case "ON_HOLD":
+        return "bg-yellow-100 text-yellow-800";
+      case "COMPLETED":
+        return "bg-blue-100 text-blue-800";
+      case "ARCHIVED":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "URGENT":
+        return "bg-red-100 text-red-800";
+      case "HIGH":
+        return "bg-orange-100 text-orange-800";
+      case "MEDIUM":
+        return "bg-yellow-100 text-yellow-800";
+      case "LOW":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const canEditProject = () => {
+    if (!project || !session?.user) return false;
+    const userRole = project.members.find(
+      (m) => m.user.id === session.user.id
+    )?.role;
+    return project.owner.id === session.user.id || userRole === "ADMIN";
+  };
+
+  const handleDeleteProject = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this project? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        router.push("/projects");
+      } else {
+        const data = await response.json();
+        setError(data.error || "Failed to delete project");
+      }
+    } catch (err) {
+      setError("An error occurred while deleting the project");
+    }
+  };
+
+  if (status === "loading" || loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading project...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !project) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+            {error || "Project not found"}
+          </h2>
+          <button
+            onClick={() => router.push("/projects")}
+            className="text-blue-600 hover:text-blue-700"
+          >
+            Back to Projects
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <button
+              onClick={() => router.push("/projects")}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div
+              className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-semibold text-xl"
+              style={{ backgroundColor: project.color || "#3B82F6" }}
+            >
+              {project.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900">
+                {project.name}
+              </h1>
+              <div className="flex items-center gap-4 mt-2">
+                <span
+                  className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                    project.status
+                  )}`}
+                >
+                  {getStatusIcon(project.status)}
+                  {project.status.replace("_", " ")}
+                </span>
+                <span className="text-gray-500 text-sm">
+                  Created {new Date(project.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+            <div className="relative">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </button>
+              {showSettings && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-10">
+                  <div className="py-1">
+                    {canEditProject() && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setShowEditModal(true);
+                            setShowSettings(false);
+                          }}
+                          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                          Edit Project
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowSettings(false);
+                            // Open settings modal
+                          }}
+                          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <Settings className="w-4 h-4" />
+                          Project Settings
+                        </button>
+                      </>
+                    )}
+                    {project.owner.id === session?.user?.id && (
+                      <button
+                        onClick={() => {
+                          setShowSettings(false);
+                          handleDeleteProject();
+                        }}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete Project
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {project.description && (
+            <p className="text-gray-600 text-lg">{project.description}</p>
+          )}
+        </div>
+
+        {/* Project Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Tasks</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {project._count.tasks}
+                </p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-blue-500" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  Team Members
+                </p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {project._count.members}
+                </p>
+              </div>
+              <Users className="w-8 h-8 text-green-500" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  Completed Tasks
+                </p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {
+                    project.tasks.filter((task) => task.status === "DONE")
+                      .length
+                  }
+                </p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-purple-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Project Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Tasks Section */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Recent Tasks
+                  </h2>
+                  <button className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2 text-sm">
+                    <Plus className="w-4 h-4" />
+                    Add Task
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                {project.tasks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      No tasks yet
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Start organizing your project by creating your first task.
+                    </p>
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      Create First Task
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {project.tasks.slice(0, 5).map((task) => (
+                      <div
+                        key={task.id}
+                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-3 h-3 rounded-full ${
+                              task.status === "DONE"
+                                ? "bg-green-500"
+                                : task.status === "IN_PROGRESS"
+                                ? "bg-blue-500"
+                                : task.status === "IN_REVIEW"
+                                ? "bg-yellow-500"
+                                : "bg-gray-300"
+                            }`}
+                          />
+                          <div>
+                            <h4 className="font-medium text-gray-900">
+                              {task.title}
+                            </h4>
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(
+                                  task.priority
+                                )}`}
+                              >
+                                {task.priority}
+                              </span>
+                              {task.assignee && (
+                                <span>Assigned to {task.assignee.name}</span>
+                              )}
+                              {task.dueDate && (
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  {new Date(task.dueDate).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {project.tasks.length > 5 && (
+                      <div className="text-center pt-4">
+                        <button className="text-blue-600 hover:text-blue-700 font-medium">
+                          View all {project.tasks.length} tasks
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Project Info */}
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Project Details
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm font-medium text-gray-600">
+                    Owner
+                  </span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                      {project.owner.avatar ? (
+                        <img
+                          src={project.owner.avatar}
+                          alt={project.owner.name}
+                          className="w-8 h-8 rounded-full"
+                        />
+                      ) : (
+                        <span className="text-sm font-medium text-gray-600">
+                          {project.owner.name?.charAt(0) ||
+                            project.owner.email.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm text-gray-900">
+                      {project.owner.name || project.owner.email}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-600">
+                    Created
+                  </span>
+                  <p className="text-sm text-gray-900">
+                    {new Date(project.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-600">
+                    Last Updated
+                  </span>
+                  <p className="text-sm text-gray-900">
+                    {new Date(project.updatedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Team Members */}
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Team Members
+                </h3>
+                <button className="text-blue-600 hover:text-blue-700 text-sm">
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="space-y-3">
+                {project.members.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        {member.user.avatar ? (
+                          <img
+                            src={member.user.avatar}
+                            alt={member.user.name}
+                            className="w-8 h-8 rounded-full"
+                          />
+                        ) : (
+                          <span className="text-sm font-medium text-gray-600">
+                            {member.user.name?.charAt(0) ||
+                              member.user.email.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {member.user.name || member.user.email}
+                        </p>
+                        <p className="text-xs text-gray-500">{member.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Edit Project Modal */}
+        {showEditModal && (
+          <EditProjectModal
+            project={project}
+            onClose={() => setShowEditModal(false)}
+            onSuccess={() => {
+              setShowEditModal(false);
+              fetchProject();
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Edit Project Modal Component
+interface EditProjectModalProps {
+  project: Project;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function EditProjectModal({
+  project,
+  onClose,
+  onSuccess,
+}: EditProjectModalProps) {
+  const [formData, setFormData] = useState({
+    name: project.name,
+    description: project.description || "",
+    status: project.status,
+    color: project.color || "#3B82F6",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/projects/${project.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        onSuccess();
+      } else {
+        setError(data.error || "Failed to update project");
+      }
+    } catch (err) {
+      setError("An error occurred while updating the project");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const colorOptions = [
+    "#3B82F6",
+    "#10B981",
+    "#8B5CF6",
+    "#F59E0B",
+    "#EF4444",
+    "#06B6D4",
+    "#EC4899",
+    "#84CC16",
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Edit Project
+          </h2>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-4">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Project Name *
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value as any })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="ON_HOLD">On Hold</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="ARCHIVED">Archived</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Color
+              </label>
+              <div className="flex gap-2">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, color })}
+                    className={`w-8 h-8 rounded-full border-2 ${
+                      formData.color === color
+                        ? "border-gray-400"
+                        : "border-gray-200"
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {loading ? "Updating..." : "Update Project"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

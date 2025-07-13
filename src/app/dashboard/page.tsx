@@ -5,16 +5,61 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import DevTools from "../../components/DevTools";
 
+// Types for project data
+interface Project {
+  id: string;
+  name: string;
+  status: string;
+  _count: {
+    tasks: number;
+    members: number;
+  };
+}
+
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
     }
   }, [status, router]);
+
+  // Fetch project stats
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchProjectStats();
+    }
+  }, [status]);
+
+  const fetchProjectStats = async () => {
+    try {
+      const response = await fetch("/api/projects");
+      const data = await response.json();
+      if (response.ok) {
+        setProjects(data.projects);
+      }
+    } catch (error) {
+      console.error("Failed to fetch project stats:", error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  // Calculate stats
+  const activeProjects = projects.filter((p) => p.status === "ACTIVE").length;
+  const totalTasks = projects.reduce(
+    (sum, project) => sum + project._count.tasks,
+    0
+  );
+  const totalMembers = projects.reduce(
+    (sum, project) => sum + project._count.members,
+    0
+  );
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -29,7 +74,7 @@ export default function Dashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showUserMenu]);
 
-  if (status === "loading") {
+  if (status === "loading" || statsLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -124,49 +169,65 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-blue-50 p-6 rounded-lg">
+            <div
+              className="bg-blue-50 p-6 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+              onClick={() => router.push("/projects")}
+            >
               <h2 className="text-xl font-semibold text-blue-800 mb-4">
                 Projects
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-4">
                 Create and manage your projects with ease.
               </p>
+              <div className="flex justify-between text-sm text-blue-700">
+                <span>{activeProjects} Active Projects</span>
+                <span>View All →</span>
+              </div>
             </div>
 
-            <div className="bg-green-50 p-6 rounded-lg">
+            <div className="bg-green-50 p-6 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
               <h2 className="text-xl font-semibold text-green-800 mb-4">
                 Tasks
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-4">
                 Organize and track your tasks efficiently.
               </p>
+              <div className="flex justify-between text-sm text-green-700">
+                <span>{totalTasks} Total Tasks</span>
+                <span>View All →</span>
+              </div>
             </div>
 
-            <div className="bg-purple-50 p-6 rounded-lg">
+            <div className="bg-purple-50 p-6 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
               <h2 className="text-xl font-semibold text-purple-800 mb-4">
                 Collaboration
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-4">
                 Work together with your team in real-time.
               </p>
+              <div className="flex justify-between text-sm text-purple-700">
+                <span>{totalMembers} Team Members</span>
+                <span>View All →</span>
+              </div>
             </div>
           </div>
 
           <div className="mt-8 text-center">
             <p className="text-gray-600 mb-4">
-              Welcome! Your authentication system is now set up with NextAuth.js
-              session management, email verification via OTP, and password reset
-              functionality.
+              Welcome! Your project management system is ready. You can now
+              create projects, manage tasks, and collaborate with your team.
             </p>
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <h3 className="font-semibold text-green-800 mb-2">
-                ✅ Authentication Features:
+                ✅ Project Management Features:
               </h3>
               <ul className="text-sm text-green-700 text-left">
-                <li>• Secure session management with NextAuth.js</li>
-                <li>• Email verification using OTP system</li>
-                <li>• Password reset functionality</li>
-                <li>• Automatic session handling and CSRF protection</li>
+                <li>• Create and manage projects with categories</li>
+                <li>
+                  • Project status management (Active, On Hold, Completed)
+                </li>
+                <li>• Form validation and configuration</li>
+                <li>• Team collaboration and member management</li>
               </ul>
             </div>
           </div>

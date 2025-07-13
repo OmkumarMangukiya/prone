@@ -251,14 +251,28 @@ This section details the key directories and files that power the backend functi
 
 ### `/src/app/api` - API Routes
 
+#### Authentication APIs
+
 - **`auth/[...nextauth]/route.ts`** - Core NextAuth.js handler for session management, sign-in, sign-out, etc.
 - **`auth/signin/route.ts`** - Custom endpoint for pre-validating user credentials before handing off to NextAuth.js.
 - **`auth/signup/route.ts`** - Handles new user registration and triggers email verification.
 - **`auth/send-otp/route.ts`** - Manages OTP generation and sending for verification and password resets.
 - **`auth/verify-otp/route.ts`** - Validates OTPs submitted by users.
 - **`auth/reset-password/route.ts`** - Handles the password reset process after OTP verification.
+
+#### User Management APIs
+
 - **`user/profile/route.ts`** - API endpoint for managing user profile data (fetching, updating).
 - **`user/profile/change-password/route.ts`** - Securely handles requests to change a user's password.
+
+#### Project Management APIs
+
+- **`projects/route.ts`** - CRUD operations for projects (create, read with filtering).
+- **`projects/[id]/route.ts`** - Individual project operations (get, update, delete).
+- **`project-categories/route.ts`** - Dynamic project categories with create functionality.
+
+#### Development APIs
+
 - **`dev/delete-user/route.ts`** - Development utility for deleting users, useful for testing.
 
 ### `/src/app/(auth)` - Authentication Pages (UI)
@@ -270,12 +284,18 @@ This section details the key directories and files that power the backend functi
 
 ### `/src/app/dashboard` - Main Application Pages (UI)
 
-- **`page.tsx`** - The main dashboard view after a user logs in.
+- **`page.tsx`** - The main dashboard view with project statistics and navigation cards.
 - **`profile/page.tsx`** - User profile page where users can view and edit their information.
+
+### `/src/app/projects` - Project Management Pages (UI)
+
+- **`page.tsx`** - Project listing page with search, filtering, and grid/list views.
+- **`[id]/page.tsx`** - Individual project detail page with tasks, team members, and project settings.
 
 ### `/src/components` - Reusable Components
 
 - **`Providers.tsx`** - Wraps the application with necessary context providers (e.g., NextAuth SessionProvider).
+- **`Navigation.tsx`** - Main navigation component with responsive design and user menu.
 - **`DevTools.tsx`** - Development utilities and debugging tools (should be removed in production).
 
 ### Security Features

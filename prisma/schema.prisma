@@ -68,6 +68,19 @@ model Session {
 
 
 // Project Management Models
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  color     String?   @default("#3B82F6")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  projects Project[]
+
+  @@map("categories")
+}
+
 model Project {
   id          String        @id @default(cuid())
   name        String
@@ -77,11 +90,13 @@ model Project {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   ownerId     String
+  categoryId  String?
 
   // Relations
-  owner   User            @relation(fields: [ownerId], references: [id])
-  members ProjectMember[]
-  tasks   Task[]
+  owner    User            @relation(fields: [ownerId], references: [id])
+  category Category?       @relation(fields: [categoryId], references: [id])
+  members  ProjectMember[]
+  tasks    Task[]
 
   @@map("projects")
 }
