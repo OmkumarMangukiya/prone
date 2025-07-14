@@ -4,6 +4,16 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -100,94 +110,114 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
-        Reset Password
-      </h1>
+    <div className="max-w-md mx-auto mt-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Reset Password</CardTitle>
+          <CardDescription className="text-center">
+            {step === 1
+              ? "Enter your email address and we'll send you an OTP to reset your password."
+              : "Enter the OTP and your new password"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <div className="p-4 rounded-md mb-4 text-sm bg-red-50 border border-red-200 text-red-800">
+              {error}
+            </div>
+          )}
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
+          {success && (
+            <div className="p-4 rounded-md mb-4 text-sm bg-green-50 border border-green-200 text-green-800">
+              {success}
+            </div>
+          )}
 
-      {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-          {success}
-        </div>
-      )}
+          {step === 1 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={sendingOtp}
+                />
+              </div>
 
-      {step === 1 && (
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600 mb-4">
-            Enter your email address and we'll send you an OTP to reset your
-            password.
-          </p>
+              <Button
+                onClick={handleSendOtp}
+                disabled={sendingOtp}
+                className="w-full"
+              >
+                {sendingOtp ? "Sending OTP..." : "Send OTP"}
+              </Button>
+            </div>
+          )}
 
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          {step === 2 && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-md mb-4 text-sm bg-green-50 border border-green-200 text-green-800">
+                OTP sent to {email}! Please check your inbox.
+              </div>
 
-          <button
-            onClick={handleSendOtp}
-            disabled={sendingOtp}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {sendingOtp ? "Sending OTP..." : "Send OTP"}
-          </button>
-        </div>
-      )}
+              <div className="space-y-2">
+                <Label htmlFor="otp">OTP Code</Label>
+                <Input
+                  id="otp"
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
 
-      {step === 2 && (
-        <div className="space-y-4">
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            OTP sent to {email}! Please check your inbox.
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  placeholder="New Password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
 
-          <input
-            type="text"
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Confirm New Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
 
-          <input
-            type="password"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+              <Button
+                onClick={handleResetPassword}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? "Resetting Password..." : "Reset Password"}
+              </Button>
 
-          <input
-            type="password"
-            placeholder="Confirm New Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          <button
-            onClick={handleResetPassword}
-            disabled={loading}
-            className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
-          >
-            {loading ? "Resetting Password..." : "Reset Password"}
-          </button>
-
-          <button
-            onClick={() => setStep(1)}
-            className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-          >
-            Back to Email
-          </button>
-        </div>
-      )}
+              <Button
+                variant="outline"
+                onClick={() => setStep(1)}
+                className="w-full"
+              >
+                Back to Email
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

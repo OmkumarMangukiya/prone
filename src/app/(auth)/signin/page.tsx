@@ -3,6 +3,16 @@
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function Signin() {
   const [email, setEmail] = useState("");
@@ -73,87 +83,111 @@ export default function Signin() {
 
   if (status === "loading") {
     return (
-      <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
-        </div>
+      <div className="max-w-md mx-auto mt-8">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-2 text-muted-foreground">Loading...</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center">Sign In</h1>
-
-      {error && (
-        <div
-          className={`px-4 py-3 rounded mb-4 ${
-            needsVerification
-              ? "bg-yellow-100 border border-yellow-400 text-yellow-700"
-              : "bg-red-100 border border-red-400 text-red-700"
-          }`}
-        >
-          <p>{error}</p>
-          {needsVerification && (
-            <button
-              onClick={handleGoToVerification}
-              className="mt-2 w-full bg-yellow-600 text-white py-2 px-4 rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+    <div className="max-w-md mx-auto mt-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Sign In</CardTitle>
+          <CardDescription className="text-center">
+            Enter your credentials to access your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <div
+              className={`p-4 rounded-md mb-4 text-sm ${
+                needsVerification
+                  ? "bg-yellow-50 border border-yellow-200 text-yellow-800"
+                  : "bg-red-50 border border-red-200 text-red-800"
+              }`}
             >
-              Verify Email Now
-            </button>
+              <p>{error}</p>
+              {needsVerification && (
+                <Button
+                  variant="link"
+                  onClick={handleGoToVerification}
+                  className="p-0 h-auto text-yellow-800 underline mt-2"
+                >
+                  Go to email verification
+                </Button>
+              )}
+            </div>
           )}
-        </div>
-      )}
 
-      <div className="space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                disabled={loading}
+              />
+            </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSignin()}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                disabled={loading}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSignin();
+                  }
+                }}
+              />
+            </div>
 
-        <button
-          onClick={handleSignin}
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-        >
-          {loading ? "Signing in..." : "Sign In"}
-        </button>
-
-        <div className="text-center mt-4 space-y-2">
-          <div>
-            <a
-              href="/forgot-password"
-              className="text-blue-600 hover:text-blue-800 text-sm"
+            <Button
+              onClick={handleSignin}
+              disabled={loading}
+              className="w-full"
             >
-              Forgot your password?
-            </a>
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
+
+            <div className="text-center space-y-2">
+              <Button
+                variant="link"
+                onClick={() => router.push("/forgot-password")}
+                className="text-sm text-muted-foreground"
+              >
+                Forgot your password?
+              </Button>
+
+              <div className="text-sm text-muted-foreground">
+                Don't have an account?{" "}
+                <Button
+                  variant="link"
+                  onClick={() => router.push("/signup")}
+                  className="p-0 h-auto"
+                >
+                  Sign up
+                </Button>
+              </div>
+            </div>
           </div>
-          <div>
-            <span className="text-sm text-gray-600">
-              Don&apos;t have an account?{" "}
-            </span>
-            <a
-              href="/signup"
-              className="text-blue-600 hover:text-blue-800 text-sm"
-            >
-              Sign up
-            </a>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

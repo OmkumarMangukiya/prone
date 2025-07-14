@@ -14,6 +14,33 @@ import {
   Trash2,
   MoreVertical,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type TaskStatus = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
 type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -63,13 +90,13 @@ interface TaskManagementProps {
 const getStatusColor = (status: TaskStatus) => {
   switch (status) {
     case "DONE":
-      return "bg-green-100 text-green-800";
+      return "secondary";
     case "IN_PROGRESS":
-      return "bg-blue-100 text-blue-800";
+      return "default";
     case "IN_REVIEW":
-      return "bg-yellow-100 text-yellow-800";
+      return "outline";
     default:
-      return "bg-gray-100 text-gray-800";
+      return "outline";
   }
 };
 
@@ -128,117 +155,106 @@ export default function TaskManagement({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6">
+      <Card>
+        <CardContent className="p-6">
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-muted rounded w-1/4 mb-4"></div>
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                <div key={i} className="h-16 bg-muted rounded"></div>
               ))}
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
   const tasksByStatus = getTasksByStatus();
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border">
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Tasks</h2>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Tasks</CardTitle>
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
             >
-              <Filter className="w-4 h-4" />
+              <Filter className="w-4 h-4 mr-2" />
               Filters
               <ChevronDown
-                className={`w-4 h-4 transition-transform ${
+                className={`w-4 h-4 ml-2 transition-transform ${
                   showFilters ? "rotate-180" : ""
                 }`}
               />
-            </button>
+            </Button>
             {canCreateTasks && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2 text-sm"
-              >
-                <Plus className="w-4 h-4" />
+              <Button size="sm" onClick={() => setShowCreateModal(true)}>
+                <Plus className="w-4 h-4 mr-2" />
                 Add Task
-              </button>
+              </Button>
             )}
           </div>
         </div>
 
         {/* Filters */}
         {showFilters && (
-          <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Status</option>
-                <option value="TODO">To Do</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="IN_REVIEW">In Review</option>
-                <option value="DONE">Done</option>
-              </select>
+          <div className="flex flex-wrap gap-4 p-4 bg-muted rounded-lg">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Status</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="TODO">To Do</SelectItem>
+                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                  <SelectItem value="IN_REVIEW">In Review</SelectItem>
+                  <SelectItem value="DONE">Done</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Assignee
-              </label>
-              <select
-                value={assigneeFilter}
-                onChange={(e) => setAssigneeFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Members</option>
-                <option value="">Unassigned</option>
-                {members.map((member) => (
-                  <option key={member.user.id} value={member.user.id}>
-                    {member.user.name || member.user.email}
-                  </option>
-                ))}
-              </select>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Assignee</Label>
+              <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Assignees</SelectItem>
+                  {members.map((member) => (
+                    <SelectItem key={member.user.id} value={member.user.id}>
+                      {member.user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
-      </div>
-
-      <div className="p-6">
+      </CardHeader>
+      <CardContent>
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-4">
+          <div className="p-4 rounded-md mb-4 text-sm bg-red-50 border border-red-200 text-red-800">
             {error}
           </div>
         )}
 
         {tasks.length === 0 ? (
           <div className="text-center py-8">
-            <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No tasks yet
-            </h3>
-            <p className="text-gray-600 mb-4">
+            <CheckCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">No tasks yet</h3>
+            <p className="text-muted-foreground mb-4">
               Start organizing your project by creating your first task.
             </p>
             {canCreateTasks && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
+              <Button onClick={() => setShowCreateModal(true)}>
                 Create First Task
-              </button>
+              </Button>
             )}
           </div>
         ) : (
@@ -248,13 +264,12 @@ export default function TaskManagement({
               {Object.entries(tasksByStatus).map(([status, statusTasks]) => (
                 <div key={status} className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3
-                      className={`font-medium px-3 py-1 rounded-full text-sm ${getStatusColor(
-                        status as TaskStatus
-                      )}`}
+                    <Badge
+                      variant={getStatusColor(status as TaskStatus)}
+                      className="px-3 py-1"
                     >
                       {status.replace("_", " ")} ({statusTasks.length})
-                    </h3>
+                    </Badge>
                   </div>
                   <div className="space-y-3">
                     {statusTasks.map((task) => (
@@ -272,7 +287,7 @@ export default function TaskManagement({
             </div>
           </div>
         )}
-      </div>
+      </CardContent>
 
       {/* Create Task Modal */}
       {showCreateModal && (
@@ -286,7 +301,7 @@ export default function TaskManagement({
           }}
         />
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -299,19 +314,18 @@ interface TaskCardProps {
 }
 
 function TaskCard({ task, members, onUpdate, canEdit }: TaskCardProps) {
-  const [showMenu, setShowMenu] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
       case "URGENT":
-        return "bg-red-100 text-red-800";
+        return "destructive";
       case "HIGH":
-        return "bg-orange-100 text-orange-800";
+        return "secondary";
       case "MEDIUM":
-        return "bg-yellow-100 text-yellow-800";
+        return "outline";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "outline";
     }
   };
 
@@ -350,96 +364,82 @@ function TaskCard({ task, members, onUpdate, canEdit }: TaskCardProps) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-3">
-        <h4 className="font-medium text-gray-900 text-sm line-clamp-2">
-          {task.title}
-        </h4>
-        {canEdit && (
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </button>
-            {showMenu && (
-              <div className="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg border z-10">
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      setShowEditModal(true);
-                      setShowMenu(false);
-                    }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      handleDelete();
-                    }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Delete
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <h4 className="font-medium text-sm line-clamp-2">{task.title}</h4>
+          {canEdit && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowEditModal(true)}>
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleDelete}
+                  className="text-destructive"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
 
-      {task.description && (
-        <p className="text-gray-600 text-xs mb-3 line-clamp-2">
-          {task.description}
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-2 mb-3">
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-            task.priority
-          )}`}
-        >
-          {task.priority}
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between text-xs text-gray-500">
-        {task.assignee ? (
-          <div className="flex items-center gap-1">
-            <User className="w-3 h-3" />
-            <span>{task.assignee.name || task.assignee.email}</span>
-          </div>
-        ) : (
-          <span>Unassigned</span>
+        {task.description && (
+          <p className="text-muted-foreground text-xs mb-3 line-clamp-2">
+            {task.description}
+          </p>
         )}
 
-        {task.dueDate && (
-          <div className="flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
-            <span>{new Date(task.dueDate).toLocaleDateString()}</span>
-          </div>
-        )}
-      </div>
+        <div className="flex flex-wrap gap-2 mb-3">
+          <Badge variant={getPriorityColor(task.priority)} className="text-xs">
+            {task.priority}
+          </Badge>
+        </div>
 
-      {/* Quick Status Change */}
-      <div className="mt-3 pt-3 border-t border-gray-100">
-        <select
-          value={task.status}
-          onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
-          className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-        >
-          <option value="TODO">To Do</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="IN_REVIEW">In Review</option>
-          <option value="DONE">Done</option>
-        </select>
-      </div>
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          {task.assignee ? (
+            <div className="flex items-center gap-1">
+              <User className="w-3 h-3" />
+              <span>{task.assignee.name || task.assignee.email}</span>
+            </div>
+          ) : (
+            <span>Unassigned</span>
+          )}
+
+          {task.dueDate && (
+            <div className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Status Change */}
+        <div className="mt-3 pt-3 border-t">
+          <Select
+            value={task.status}
+            onValueChange={(value) => handleStatusChange(value as TaskStatus)}
+          >
+            <SelectTrigger className="w-full h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TODO">To Do</SelectItem>
+              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+              <SelectItem value="IN_REVIEW">In Review</SelectItem>
+              <SelectItem value="DONE">Done</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardContent>
 
       {/* Edit Task Modal */}
       {showEditModal && (
@@ -453,7 +453,7 @@ function TaskCard({ task, members, onUpdate, canEdit }: TaskCardProps) {
           }}
         />
       )}
-    </div>
+    </Card>
   );
 }
 

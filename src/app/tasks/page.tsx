@@ -14,6 +14,18 @@ import {
   Search,
   Plus,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Task {
   id: string;
@@ -254,85 +266,76 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">My Tasks</h1>
+          <h1 className="text-3xl font-bold mb-4">My Tasks</h1>
 
           {/* Task Stats */}
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow-sm border p-4">
+            <Card className="p-4">
               <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">
-                  {taskStats.total}
-                </p>
-                <p className="text-sm text-gray-600">Total</p>
+                <p className="text-2xl font-semibold">{taskStats.total}</p>
+                <p className="text-sm text-muted-foreground">Total</p>
               </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border p-4">
+            </Card>
+            <Card className="p-4">
               <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-600">
+                <p className="text-2xl font-semibold text-muted-foreground">
                   {taskStats.todo}
                 </p>
-                <p className="text-sm text-gray-600">To Do</p>
+                <p className="text-sm text-muted-foreground">To Do</p>
               </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border p-4">
+            </Card>
+            <Card className="p-4">
               <div className="text-center">
-                <p className="text-2xl font-semibold text-blue-600">
-                  {taskStats.inProgress}
-                </p>
-                <p className="text-sm text-gray-600">In Progress</p>
+                <p className="text-2xl font-semibold">{taskStats.inProgress}</p>
+                <p className="text-sm text-muted-foreground">In Progress</p>
               </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border p-4">
+            </Card>
+            <Card className="p-4">
               <div className="text-center">
-                <p className="text-2xl font-semibold text-yellow-600">
-                  {taskStats.inReview}
-                </p>
-                <p className="text-sm text-gray-600">In Review</p>
+                <p className="text-2xl font-semibold">{taskStats.inReview}</p>
+                <p className="text-sm text-muted-foreground">In Review</p>
               </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border p-4">
+            </Card>
+            <Card className="p-4">
               <div className="text-center">
-                <p className="text-2xl font-semibold text-green-600">
-                  {taskStats.done}
-                </p>
-                <p className="text-sm text-gray-600">Done</p>
+                <p className="text-2xl font-semibold">{taskStats.done}</p>
+                <p className="text-sm text-muted-foreground">Done</p>
               </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border p-4">
+            </Card>
+            <Card className="p-4">
               <div className="text-center">
-                <p className="text-2xl font-semibold text-red-600">
-                  {taskStats.overdue}
-                </p>
-                <p className="text-sm text-gray-600">Overdue</p>
+                <p className="text-2xl font-semibold">{taskStats.overdue}</p>
+                <p className="text-sm text-muted-foreground">Overdue</p>
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Search and Filters */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <Card className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Search */}
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                  <Input
                     type="text"
                     placeholder="Search tasks..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="pl-10"
                   />
                 </div>
               </div>
 
               {/* Filter Toggle */}
-              <button
+              <Button
+                variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex items-center gap-2"
               >
                 <Filter className="w-4 h-4" />
                 Filters
@@ -341,91 +344,104 @@ export default function TasksPage() {
                     showFilters ? "rotate-180" : ""
                   }`}
                 />
-              </button>
+              </Button>
             </div>
 
             {/* Filters */}
             {showFilters && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="mt-4 pt-4 border-t">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium mb-1">
                       Status
                     </label>
-                    <select
+                    <Select
                       value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onValueChange={setStatusFilter}
                     >
-                      <option value="all">All Status</option>
-                      <option value="TODO">To Do</option>
-                      <option value="IN_PROGRESS">In Progress</option>
-                      <option value="IN_REVIEW">In Review</option>
-                      <option value="DONE">Done</option>
-                    </select>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="TODO">To Do</SelectItem>
+                        <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                        <SelectItem value="IN_REVIEW">In Review</SelectItem>
+                        <SelectItem value="DONE">Done</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium mb-1">
                       Priority
                     </label>
-                    <select
+                    <Select
                       value={priorityFilter}
-                      onChange={(e) => setPriorityFilter(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onValueChange={setPriorityFilter}
                     >
-                      <option value="all">All Priorities</option>
-                      <option value="URGENT">Urgent</option>
-                      <option value="HIGH">High</option>
-                      <option value="MEDIUM">Medium</option>
-                      <option value="LOW">Low</option>
-                    </select>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Priorities</SelectItem>
+                        <SelectItem value="URGENT">Urgent</SelectItem>
+                        <SelectItem value="HIGH">High</SelectItem>
+                        <SelectItem value="MEDIUM">Medium</SelectItem>
+                        <SelectItem value="LOW">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium mb-1">
                       Project
                     </label>
-                    <select
+                    <Select
                       value={projectFilter}
-                      onChange={(e) => setProjectFilter(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onValueChange={setProjectFilter}
                     >
-                      <option value="all">All Projects</option>
-                      {projects.map((project) => (
-                        <option key={project.id} value={project.id}>
-                          {project.name}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Projects</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="flex items-end">
-                    <button
+                    <Button
+                      variant="outline"
                       onClick={() => {
                         setSearchTerm("");
                         setStatusFilter("all");
                         setPriorityFilter("all");
                         setProjectFilter("all");
                       }}
-                      className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full"
                     >
                       Clear Filters
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
         {/* Tasks List */}
-        <div className="bg-white rounded-lg shadow-sm border">
+        <Card>
           {error && (
-            <div className="p-6 border-b border-gray-200">
-              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-                {error}
-              </div>
+            <div className="p-6 border-b">
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             </div>
           )}
 
@@ -541,7 +557,7 @@ export default function TasksPage() {
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

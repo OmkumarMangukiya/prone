@@ -16,6 +16,32 @@ import {
   Pause,
   Archive,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface Project {
   id: string;
@@ -142,21 +168,6 @@ export default function ProjectsPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
-        return "bg-green-100 text-green-800";
-      case "ON_HOLD":
-        return "bg-yellow-100 text-yellow-800";
-      case "COMPLETED":
-        return "bg-blue-100 text-blue-800";
-      case "ARCHIVED":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const filteredProjects = projects.filter(
     (project) =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -169,141 +180,131 @@ export default function ProjectsPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading projects...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading projects...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-3xl font-bold">Projects</h1>
+              <p className="text-muted-foreground mt-1">
                 Manage and track your projects efficiently
               </p>
             </div>
-            <button
-              onClick={handleCreateProject}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
+            <Button onClick={handleCreateProject}>
+              <Plus className="w-4 h-4 mr-2" />
               New Project
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <Card className="p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
                   type="text"
                   placeholder="Search projects..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-10"
                 />
               </div>
             </div>
 
             {/* Status Filter */}
             <div className="lg:w-48">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Status</option>
-                <option value="ACTIVE">Active</option>
-                <option value="ON_HOLD">On Hold</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="ARCHIVED">Archived</option>
-              </select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="ARCHIVED">Archived</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Category Filter */}
             <div className="lg:w-48">
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Categories</option>
-                {categories &&
-                  categories.length > 0 &&
-                  categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-              </select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories &&
+                    categories.length > 0 &&
+                    categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex border border-gray-300 rounded-lg overflow-hidden">
-              <button
+            <div className="flex border rounded-lg overflow-hidden">
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="sm"
                 onClick={() => setViewMode("grid")}
-                className={`px-3 py-2 ${
-                  viewMode === "grid"
-                    ? "bg-blue-100 text-blue-600"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
-                }`}
+                className="rounded-none border-0"
               >
                 <Grid className="w-4 h-4" />
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="sm"
                 onClick={() => setViewMode("list")}
-                className={`px-3 py-2 ${
-                  viewMode === "list"
-                    ? "bg-blue-100 text-blue-600"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
-                }`}
+                className="rounded-none border-0"
               >
                 <List className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         {/* Projects Grid/List */}
         {filteredProjects.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
+            <div className="text-muted-foreground mb-4">
               <Plus className="w-16 h-16 mx-auto" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No projects found
-            </h3>
-            <p className="text-gray-600 mb-4">
+            <h3 className="text-lg font-medium mb-2">No projects found</h3>
+            <p className="text-muted-foreground mb-4">
               {searchTerm
                 ? "No projects match your search criteria."
                 : "Get started by creating your first project."}
             </p>
             {!searchTerm && (
-              <button
-                onClick={handleCreateProject}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
+              <Button onClick={handleCreateProject}>
                 Create Your First Project
-              </button>
+              </Button>
             )}
           </div>
         ) : (
@@ -315,9 +316,9 @@ export default function ProjectsPage() {
             }
           >
             {filteredProjects.map((project) => (
-              <div
+              <Card
                 key={project.id}
-                className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer ${
+                className={`hover:shadow-md transition-shadow cursor-pointer ${
                   viewMode === "list" ? "p-4" : "p-6"
                 }`}
                 onClick={() => router.push(`/projects/${project.id}`)}
@@ -330,37 +331,33 @@ export default function ProjectsPage() {
                         <div
                           className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-semibold"
                           style={{
-                            backgroundColor: project.color || "#3B82F6",
+                            backgroundColor: project.color || "#000000",
                           }}
                         >
                           {project.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900 truncate">
+                          <h3 className="font-semibold truncate">
                             {project.name}
                           </h3>
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                              project.status
-                            )}`}
-                          >
+                          <Badge variant="secondary" className="text-xs">
                             {getStatusIcon(project.status)}
                             {project.status.replace("_", " ")}
-                          </span>
+                          </Badge>
                         </div>
                       </div>
-                      <button className="p-1 text-gray-400 hover:text-gray-600">
+                      <Button variant="ghost" size="sm">
                         <MoreVertical className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
 
                     {project.description && (
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                         {project.description}
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1">
                           <CheckCircle className="w-4 h-4" />
@@ -382,42 +379,38 @@ export default function ProjectsPage() {
                     <div className="flex items-center gap-4 flex-1">
                       <div
                         className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold"
-                        style={{ backgroundColor: project.color || "#3B82F6" }}
+                        style={{ backgroundColor: project.color || "#000000" }}
                       >
                         {project.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate">
+                        <h3 className="font-semibold truncate">
                           {project.name}
                         </h3>
                         {project.description && (
-                          <p className="text-gray-600 text-sm truncate">
+                          <p className="text-muted-foreground text-sm truncate">
                             {project.description}
                           </p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-6 text-sm text-gray-500">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          project.status
-                        )}`}
-                      >
+                    <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                      <Badge variant="secondary" className="text-xs">
                         {getStatusIcon(project.status)}
                         {project.status.replace("_", " ")}
-                      </span>
+                      </Badge>
                       <span>{project._count.tasks} tasks</span>
                       <span>{project._count.members} members</span>
                       <span>
                         {new Date(project.updatedAt).toLocaleDateString()}
                       </span>
-                      <button className="p-1 text-gray-400 hover:text-gray-600">
+                      <Button variant="ghost" size="sm">
                         <MoreVertical className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
-              </div>
+              </Card>
             ))}
           </div>
         )}
