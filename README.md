@@ -28,7 +28,7 @@ Prone is a modern, feature-rich project management tool built with Next.js 14, d
 
 #### UI/UX Libraries
 
-- **@dnd-kit/core** - Drag and drop functionality
+- **@hello-pangea/dnd** - Drag and drop functionality for Kanban board
 - **react-hook-form** - Form management
 - **react-query/TanStack Query** - Data fetching
 - **recharts** or **Chart.js** - Data visualization
@@ -172,22 +172,25 @@ prone/
 - Table View - Spreadsheet-like data management
 - Activity Feed - Real-time project updates and changes
 
-### Task Management ✅ **IMPLEMENTED**
+### Task Management
 
 - **Task CRUD Operations** - Create, read, update, and delete tasks with full validation
 - **Task Assignment** - Assign tasks to project members with role-based permissions
 - **Task Status Management** - Four-stage workflow: To Do, In Progress, In Review, Done
-- **Task Priorities** - Four priority levels: Low, Medium, High, Urgent with color coding
-- **Due Date Management** - Set and track task deadlines with overdue indicators
-- **Kanban Board View** - Visual task management with status-based columns
-- **Task Filtering** - Filter by status, assignee, priority, and project
+- **Task Priorities** - Four priority levels: Low, Medium, High, Urgent with color coding and emoji indicators
+- **Due Date Management** - Set and track task deadlines with overdue indicators and visual warnings
+- **Enhanced Kanban Board View** - Visual task management with drag-and-drop functionality between status columns
+- **Drag & Drop Interface** - Seamless task status updates using @hello-pangea/dnd library
+- **Task Filtering** - Filter by status, assignee, priority, and project with collapsible panel
 - **Cross-Project Task View** - Unified task dashboard across all projects
-- **Quick Status Updates** - Inline status changes without opening modals
+- **Quick Status Updates** - Both drag-and-drop and inline dropdown status changes
 - **Task Search** - Search tasks by title and description
 - **Permission-Based Actions** - Role-based create, edit, and delete permissions
-- **Real-time Updates** - Automatic refresh after task modifications
-- **Task Details** - Comprehensive task information with project context
-- **Responsive Design** - Mobile-friendly task management interface
+- **Real-time Updates** - Optimistic UI updates with automatic refresh after modifications
+- **Enhanced Task Cards** - Comprehensive task information with drag handles, priority indicators, and metadata
+- **Responsive Design** - Mobile-friendly task management interface that adapts to screen size
+- **Loading States** - Skeleton loading animations for better perceived performance
+- **Error Handling** - User-friendly error messages with retry mechanisms
 
 #### API Endpoints
 
@@ -201,18 +204,6 @@ prone/
 
 - `/projects/[id]` - Project-specific task management with Kanban board
 - `/tasks` - Cross-project task dashboard with advanced filtering
-
-### Future Task Enhancements
-
-- Task Dependencies - Link related tasks with prerequisites
-- Subtasks - Break down complex tasks into smaller parts
-- Task Prioritization - High, medium, low priority levels
-- Due Dates - Set deadlines for tasks and milestones
-- Task Status - To Do, In Progress, Done, Blocked states
-- Recurring Tasks - Automated task creation for repetitive work
-- Task Labels - Categorize and filter tasks
-- Task Comments - Discussion threads on specific tasks
-- Task History - Track changes and updates
 
 ### Collaboration Features
 
@@ -310,10 +301,10 @@ This section details the key directories and files that power the backend functi
 
 ### `/src/app/(auth)` - Authentication Pages (UI)
 
-- **`signin/page.tsx`** - User login interface.
-- **`signup/page.tsx`** - User registration form.
+- **`signin/page.tsx`** - User login interface with email/password authentication.
+- **`signup/page.tsx`** - User registration form with email verification flow.
 - **`verify-email/page.tsx`** - Interface for users to enter their OTP to verify their email.
-- **`forgot-password/page.tsx`** - Page for users to request a password reset.
+- **`forgot-password/page.tsx`** - Page for users to request a password reset via email.
 
 ### `/src/app/dashboard` - Main Application Pages (UI)
 
@@ -333,8 +324,22 @@ This section details the key directories and files that power the backend functi
 
 - **`Providers.tsx`** - Wraps the application with necessary context providers (e.g., NextAuth SessionProvider).
 - **`Navigation.tsx`** - Main navigation component with responsive design and user menu.
-- **`DevTools.tsx`** - Development utilities and debugging tools (should be removed in production).
-- **`TaskManagement.tsx`** - Comprehensive task management component with Kanban board, filtering, and CRUD operations.
+- **`DevTools.tsx`** - Development utilities and debugging tools.
+- **`TaskManagement.tsx`** - Comprehensive task management component with enhanced Kanban board, drag-and-drop functionality, filtering, and CRUD operations.
+
+### `/docs` - Documentation
+
+- **`how-it-works/auth.md`** - Detailed documentation of the authentication system architecture and flows.
+- **`how-it-works/crud_project.md`** - Project creation and management system documentation.
+- **`how-it-works/task_management.md`** - Task management system architecture with Kanban board implementation details.
+
+### Configuration Files
+
+- **`PRODUCTION_CLEANUP.md`** - Checklist of development-only features that must be removed before production deployment.
+- **`package.json`** - Project dependencies including @hello-pangea/dnd for drag-and-drop functionality.
+- **`tsconfig.json`** - TypeScript configuration for type safety across the application.
+- **`next.config.ts`** - Next.js configuration for build optimization and deployment settings.
+- **`middleware.ts`** - Request middleware for authentication and route protection
 
 ### Security Features
 

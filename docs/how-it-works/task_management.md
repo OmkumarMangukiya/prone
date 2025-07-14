@@ -35,18 +35,23 @@ The task management system provides comprehensive CRUD operations for tasks with
 
 Main component that provides:
 
-- Kanban board view with columns for each status
-- Task filtering by status and assignee
-- Create task modal
-- Task card components with inline editing
+- **Enhanced Kanban Board**: Four-column layout with drag-and-drop functionality
+- **Task Filtering**: Advanced filtering by status and assignee with collapsible panel
+- **Create Task Modal**: Comprehensive task creation with validation
+- **Real-time Updates**: Optimistic UI updates with server synchronization
+- **Responsive Design**: Mobile-first layout that adapts to screen size
+- **Loading States**: Skeleton loading animations for better UX
 
-#### Task Card Features
+#### Enhanced Task Card Features
 
-- Quick status updates via dropdown
-- Priority and due date indicators
-- Assignee information
-- Edit and delete actions (with permission checks)
-- Comment and attachment counts
+- **Drag Handle**: Visual grip icon for intuitive drag-and-drop
+- **Priority Indicators**: Color-coded badges with emoji indicators
+- **Due Date Management**: Calendar display with overdue warnings
+- **Assignee Display**: User avatars with fallback initials
+- **Task Metadata**: Comment and attachment counts
+- **Action Menu**: Edit and delete options with permission checks
+- **Visual States**: Hover effects, dragging states, and smooth transitions
+- **Quick Status Updates**: Dropdown for manual status changes (when not dragging)
 
 ## Data Flow
 
@@ -71,7 +76,29 @@ sequenceDiagram
     TaskMgmt->>TaskMgmt: Refresh task list
 ```
 
-### Updating a Task
+### Updating a Task via Drag & Drop
+
+```mermaid
+sequenceDiagram
+    participant User as User
+    participant DnD as Drag & Drop Context
+    participant TaskMgmt as TaskManagement
+    participant TaskAPI as /api/tasks/[id]
+    participant DB as Database
+
+    User->>DnD: Drag task to new column
+    DnD->>TaskMgmt: onDragEnd(result)
+    TaskMgmt->>TaskMgmt: Optimistic UI update
+    TaskMgmt->>TaskAPI: PUT /api/tasks/[id] (new status)
+    TaskAPI->>TaskAPI: Validate permissions
+    TaskAPI->>DB: Update task status
+    DB-->>TaskAPI: Return updated task
+    TaskAPI-->>TaskMgmt: Return success response
+
+    Note over TaskMgmt: On error, revert optimistic update
+```
+
+### Updating a Task via Edit Modal
 
 ```mermaid
 sequenceDiagram
@@ -137,15 +164,38 @@ Users can move tasks between any status, providing flexibility in workflow manag
 
 ### Kanban Board
 
-- Visual representation of tasks organized by status
-- Drag-and-drop functionality (planned for future release)
-- Quick status updates via dropdown
+- **Visual Task Organization**: Tasks are organized in four status-based columns: To Do, In Progress, In Review, and Done
+- **Drag-and-Drop Functionality**: Seamless task status updates by dragging tasks between columns using @hello-pangea/dnd
+- **Column Design**: Each column has distinct colors and icons for easy visual differentiation
+- **Real-time Updates**: Optimistic UI updates with server synchronization
+- **Drop Zones**: Visual feedback during drag operations with highlighted drop zones
+- **Task Counts**: Dynamic task counts displayed in column headers
+- **Responsive Layout**: Adapts from single column on mobile to four columns on desktop
+
+### Enhanced Task Cards 
+- **Drag Handle**: Visual grip icon for intuitive drag-and-drop interaction
+- **Priority Indicators**: Color-coded priority badges 
+- **Due Date Tracking**: Calendar icons with overdue warnings and visual indicators
+- **Assignee Information**: User avatars and names with fallback initials
+- **Task Metadata**: Comments and attachments count display
+- **Overdue Alerts**: Red styling and warning icons for overdue tasks
+- **Hover Effects**: Smooth transitions and shadow effects for better interactivity
+- **Action Menu**: Edit and delete options accessible via dropdown menu
 
 ### Filtering
 
 - Filter by task status
 - Filter by assignee
 - Collapsible filter panel
+
+### User Experience
+
+- **Loading States**: Skeleton loading for better perceived performance
+- **Error Handling**: User-friendly error messages with retry mechanisms
+- **Empty States**: Helpful guidance when no tasks exist
+- **Responsive Design**: Mobile-first design that works on all screen sizes
+- **Accessibility**: Keyboard navigation and screen reader support
+- **Visual Feedback**: Smooth animations and transitions throughout the interface
 
 ### Task Details
 
@@ -197,13 +247,15 @@ The task management system is integrated into the project detail page (`/project
 
 ## Future Enhancements
 
-1. **Drag & Drop**: Implement task reordering and status changes via drag-and-drop
-2. **Bulk Operations**: Select multiple tasks for bulk status updates or deletion
-3. **Task Templates**: Predefined task templates for common project types
-4. **Time Tracking**: Integration with time tracking functionality
-5. **Task Dependencies**: Link tasks with dependencies and prerequisites
-6. **Custom Fields**: Allow projects to define custom task fields
-7. **Advanced Filtering**: Date range filters, custom field filters
-8. **Task Comments**: Inline commenting system for task discussions
-9. **File Attachments**: Attach files and documents to tasks
-10. **Notifications**: Real-time notifications for task assignments and updates
+1. **Bulk Operations**: Select multiple tasks for bulk status updates or deletion
+2. **Task Templates**: Predefined task templates for common project types
+3. **Time Tracking**: Integration with time tracking functionality
+4. **Task Dependencies**: Link tasks with dependencies and prerequisites
+5. **Custom Fields**: Allow projects to define custom task fields
+6. **Advanced Filtering**: Date range filters, custom field filters
+7. **Task Comments**: Inline commenting system for task discussions
+8. **File Attachments**: Attach files and documents to tasks
+9. **Notifications**: Real-time notifications for task assignments and updates
+10. **Board Customization**: Custom column creation and board layouts
+11. **Task Archiving**: Archive completed tasks while maintaining history
+12. **Keyboard Shortcuts**: Power user keyboard shortcuts for common actions

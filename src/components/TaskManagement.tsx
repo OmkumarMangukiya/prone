@@ -13,7 +13,15 @@ import {
   Edit2,
   Trash2,
   MoreVertical,
+  GripVertical,
 } from "lucide-react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+  DraggableProvidedDragHandleProps,
+} from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,19 +39,42 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 
 type TaskStatus = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
 type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+
+// Kanban column configuration
+const KANBAN_COLUMNS = [
+  {
+    id: "TODO" as TaskStatus,
+    title: "To Do",
+    color: "bg-slate-100 border-slate-300",
+    badgeColor: "outline",
+    icon: Clock,
+  },
+  {
+    id: "IN_PROGRESS" as TaskStatus,
+    title: "In Progress",
+    color: "bg-blue-50 border-blue-300",
+    badgeColor: "default",
+    icon: Clock,
+  },
+  {
+    id: "IN_REVIEW" as TaskStatus,
+    title: "In Review",
+    color: "bg-amber-50 border-amber-300",
+    badgeColor: "outline",
+    icon: AlertCircle,
+  },
+  {
+    id: "DONE" as TaskStatus,
+    title: "Done",
+    color: "bg-green-50 border-green-300",
+    badgeColor: "secondary",
+    icon: CheckCircle,
+  },
+] as const;
 
 interface Task {
   id: string;
@@ -86,19 +117,6 @@ interface TaskManagementProps {
   }>;
   canCreateTasks: boolean;
 }
-
-const getStatusColor = (status: TaskStatus) => {
-  switch (status) {
-    case "DONE":
-      return "secondary";
-    case "IN_PROGRESS":
-      return "default";
-    case "IN_REVIEW":
-      return "outline";
-    default:
-      return "outline";
-  }
-};
 
 export default function TaskManagement({
   projectId,
@@ -153,15 +171,68 @@ export default function TaskManagement({
     return groupedTasks;
   };
 
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    // If dropped outside a droppable area
+    if (!destination) return;
+
+    // If dropped in the same position
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const newStatus = destination.droppableId as TaskStatus;
+    const taskId = draggableId;
+
+    // Optimistically update the UI
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId ? { ...task, status: newStatus } : task
+      )
+    );
+
+    // Update the task status on the server
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        // Revert the optimistic update on error
+        fetchTasks();
+        setError("Failed to update task status");
+      }
+    } catch (err) {
+      // Revert the optimistic update on error
+      fetchTasks();
+      setError("An error occurred while updating the task");
+    }
+  };
+
   if (loading) {
     return (
       <Card>
         <CardContent className="p-6">
           <div className="animate-pulse">
             <div className="h-4 bg-muted rounded w-1/4 mb-4"></div>
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-muted rounded"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="space-y-3">
+                  <div className="h-8 bg-muted rounded"></div>
+                  <div className="space-y-3">
+                    {[1, 2].map((j) => (
+                      <div key={j} className="h-32 bg-muted rounded"></div>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -171,137 +242,193 @@ export default function TaskManagement({
   }
 
   const tasksByStatus = getTasksByStatus();
-
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Tasks</CardTitle>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
-              <ChevronDown
-                className={`w-4 h-4 ml-2 transition-transform ${
-                  showFilters ? "rotate-180" : ""
-                }`}
-              />
-            </Button>
-            {canCreateTasks && (
-              <Button size="sm" onClick={() => setShowCreateModal(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Task
+    <div className="w-full">
+      <Card className="w-full">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              Tasks
+              <Badge variant="outline" className="ml-2">
+                {tasks.length} total
+              </Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filters
+                <ChevronDown
+                  className={`w-4 h-4 ml-2 transition-transform ${
+                    showFilters ? "rotate-180" : ""
+                  }`}
+                />
               </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Filters */}
-        {showFilters && (
-          <div className="flex flex-wrap gap-4 p-4 bg-muted rounded-lg">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="TODO">To Do</SelectItem>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                  <SelectItem value="IN_REVIEW">In Review</SelectItem>
-                  <SelectItem value="DONE">Done</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Assignee</Label>
-              <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Assignees</SelectItem>
-                  {members.map((member) => (
-                    <SelectItem key={member.user.id} value={member.user.id}>
-                      {member.user.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {canCreateTasks && (
+                <Button size="sm" onClick={() => setShowCreateModal(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Task
+                </Button>
+              )}
             </div>
           </div>
-        )}
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <div className="p-4 rounded-md mb-4 text-sm bg-red-50 border border-red-200 text-red-800">
-            {error}
-          </div>
-        )}
 
-        {tasks.length === 0 ? (
-          <div className="text-center py-8">
-            <CheckCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No tasks yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Start organizing your project by creating your first task.
-            </p>
-            {canCreateTasks && (
-              <Button onClick={() => setShowCreateModal(true)}>
-                Create First Task
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Kanban Board View */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {Object.entries(tasksByStatus).map(([status, statusTasks]) => (
-                <div key={status} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Badge
-                      variant={getStatusColor(status as TaskStatus)}
-                      className="px-3 py-1"
-                    >
-                      {status.replace("_", " ")} ({statusTasks.length})
-                    </Badge>
-                  </div>
-                  <div className="space-y-3">
-                    {statusTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        members={members}
-                        onUpdate={fetchTasks}
-                        canEdit={canCreateTasks}
-                      />
+          {/* Filters */}
+          {showFilters && (
+            <div className="flex flex-wrap gap-4 p-4 bg-muted rounded-lg">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Status</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="TODO">To Do</SelectItem>
+                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                    <SelectItem value="IN_REVIEW">In Review</SelectItem>
+                    <SelectItem value="DONE">Done</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Assignee</Label>
+                <Select
+                  value={assigneeFilter}
+                  onValueChange={setAssigneeFilter}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Assignees</SelectItem>
+                    {members.map((member) => (
+                      <SelectItem key={member.user.id} value={member.user.id}>
+                        {member.user.name}
+                      </SelectItem>
                     ))}
-                  </div>
-                </div>
-              ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-        )}
-      </CardContent>
+          )}
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <div className="p-4 rounded-md mb-4 text-sm bg-red-50 border border-red-200 text-red-800">
+              {error}
+            </div>
+          )}
 
-      {/* Create Task Modal */}
-      {showCreateModal && (
-        <CreateTaskModal
-          projectId={projectId}
-          members={members}
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={() => {
-            setShowCreateModal(false);
-            fetchTasks();
-          }}
-        />
-      )}
-    </Card>
+          {tasks.length === 0 ? (
+            <div className="text-center py-12">
+              <CheckCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">No tasks yet</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Start organizing your project by creating your first task. You
+                can drag and drop tasks between columns to update their status.
+              </p>
+              {canCreateTasks && (
+                <Button onClick={() => setShowCreateModal(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create First Task
+                </Button>
+              )}
+            </div>
+          ) : (
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                {KANBAN_COLUMNS.map((column) => {
+                  const columnTasks = tasksByStatus[column.id];
+                  return (
+                    <div key={column.id} className="flex flex-col min-w-0">
+                      <div
+                        className={`rounded-t-lg border-2 border-b-0 ${column.color} p-2`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <column.icon className="w-4 h-4" />
+                            <h3 className="font-medium text-sm">
+                              {column.title}
+                            </h3>
+                          </div>
+                          <Badge
+                            variant={column.badgeColor as any}
+                            className="text-xs"
+                          >
+                            {columnTasks.length}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <Droppable droppableId={column.id}>
+                        {(provided, snapshot) => (
+                          <div
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className={`flex-1 min-h-[300px] border-2 border-t-0 rounded-b-lg p-2 space-y-2 transition-colors ${
+                              snapshot.isDraggingOver
+                                ? "bg-blue-50 border-blue-300"
+                                : column.color
+                            }`}
+                          >
+                            {columnTasks.map((task, index) => (
+                              <Draggable
+                                key={task.id}
+                                draggableId={task.id}
+                                index={index}
+                              >
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    className={`transition-shadow ${
+                                      snapshot.isDragging
+                                        ? "rotate-3 shadow-lg"
+                                        : ""
+                                    }`}
+                                  >
+                                    <TaskCard
+                                      task={task}
+                                      members={members}
+                                      onUpdate={fetchTasks}
+                                      canEdit={canCreateTasks}
+                                      dragHandleProps={provided.dragHandleProps}
+                                      isDragging={snapshot.isDragging}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </div>
+                  );
+                })}
+              </div>
+            </DragDropContext>
+          )}
+        </CardContent>
+
+        {/* Create Task Modal */}
+        {showCreateModal && (
+          <CreateTaskModal
+            projectId={projectId}
+            members={members}
+            onClose={() => setShowCreateModal(false)}
+            onSuccess={() => {
+              setShowCreateModal(false);
+              fetchTasks();
+            }}
+          />
+        )}
+      </Card>
+    </div>
   );
 }
 
@@ -311,9 +438,18 @@ interface TaskCardProps {
   members: Array<{ id: string; role: string; user: User }>;
   onUpdate: () => void;
   canEdit: boolean;
+  dragHandleProps?: DraggableProvidedDragHandleProps | null;
+  isDragging?: boolean;
 }
 
-function TaskCard({ task, members, onUpdate, canEdit }: TaskCardProps) {
+function TaskCard({
+  task,
+  members,
+  onUpdate,
+  canEdit,
+  dragHandleProps,
+  isDragging = false,
+}: TaskCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
 
   const getPriorityColor = (priority: TaskPriority) => {
@@ -326,6 +462,21 @@ function TaskCard({ task, members, onUpdate, canEdit }: TaskCardProps) {
         return "outline";
       default:
         return "outline";
+    }
+  };
+
+  const getPriorityIcon = (priority: TaskPriority) => {
+    switch (priority) {
+      case "URGENT":
+        return "🔥";
+      case "HIGH":
+        return "🔴";
+      case "MEDIUM":
+        return "🟡";
+      case "LOW":
+        return "🟢";
+      default:
+        return "";
     }
   };
 
@@ -363,16 +514,49 @@ function TaskCard({ task, members, onUpdate, canEdit }: TaskCardProps) {
     }
   };
 
+  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <h4 className="font-medium text-sm line-clamp-2">{task.title}</h4>
+    <Card
+      className={`
+      transition-all duration-200 
+      ${
+        isDragging
+          ? "shadow-xl bg-white border-blue-300 scale-105"
+          : "hover:shadow-md border-border"
+      }
+      ${isOverdue ? "border-red-300 bg-red-50/30" : ""}
+    `}
+    >
+      <CardContent className="p-2">
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex items-start gap-1 flex-1">
+            <div
+              {...dragHandleProps}
+              className="mt-0.5 cursor-grab active:cursor-grabbing opacity-60 hover:opacity-100 transition-opacity"
+            >
+              <GripVertical className="w-3 h-3" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-sm line-clamp-2 leading-tight">
+                {task.title}
+              </h4>
+              {task.description && (
+                <p className="text-muted-foreground text-xs mt-1 line-clamp-2 leading-tight">
+                  {task.description}
+                </p>
+              )}
+            </div>
+          </div>
           {canEdit && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreVertical className="w-4 h-4" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 w-5 p-0 opacity-60 hover:opacity-100"
+                >
+                  <MoreVertical className="w-3 h-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -392,53 +576,89 @@ function TaskCard({ task, members, onUpdate, canEdit }: TaskCardProps) {
           )}
         </div>
 
-        {task.description && (
-          <p className="text-muted-foreground text-xs mb-3 line-clamp-2">
-            {task.description}
-          </p>
-        )}
-
-        <div className="flex flex-wrap gap-2 mb-3">
-          <Badge variant={getPriorityColor(task.priority)} className="text-xs">
-            {task.priority}
-          </Badge>
-        </div>
-
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          {task.assignee ? (
-            <div className="flex items-center gap-1">
-              <User className="w-3 h-3" />
-              <span>{task.assignee.name || task.assignee.email}</span>
-            </div>
-          ) : (
-            <span>Unassigned</span>
-          )}
+        {/* Priority and Due Date */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1">
+            <Badge
+              variant={getPriorityColor(task.priority)}
+              className="text-xs px-1.5 py-0"
+            >
+              <span className="mr-1">{getPriorityIcon(task.priority)}</span>
+              {task.priority}
+            </Badge>
+          </div>
 
           {task.dueDate && (
-            <div className="flex items-center gap-1">
+            <div
+              className={`flex items-center gap-1 text-xs ${
+                isOverdue ? "text-red-600" : "text-muted-foreground"
+              }`}
+            >
               <Calendar className="w-3 h-3" />
               <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+              {isOverdue && (
+                <span className="text-red-600 font-medium">⚠️</span>
+              )}
             </div>
           )}
         </div>
 
-        {/* Quick Status Change */}
-        <div className="mt-3 pt-3 border-t">
-          <Select
-            value={task.status}
-            onValueChange={(value) => handleStatusChange(value as TaskStatus)}
-          >
-            <SelectTrigger className="w-full h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="TODO">To Do</SelectItem>
-              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-              <SelectItem value="IN_REVIEW">In Review</SelectItem>
-              <SelectItem value="DONE">Done</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Assignee */}
+        <div className="flex items-center justify-between mb-2">
+          {task.assignee ? (
+            <div className="flex items-center gap-1.5">
+              <Avatar className="w-5 h-5">
+                <AvatarImage src={task.assignee.avatar} />
+                <AvatarFallback className="text-xs">
+                  {task.assignee.name?.charAt(0) ||
+                    task.assignee.email.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs text-muted-foreground truncate">
+                {task.assignee.name || task.assignee.email}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <User className="w-3 h-3" />
+              <span className="text-xs">Unassigned</span>
+            </div>
+          )}
+
+          {/* Task metadata */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            {task._count.comments > 0 && (
+              <span className="flex items-center gap-0.5">
+                💬 {task._count.comments}
+              </span>
+            )}
+            {task._count.attachments > 0 && (
+              <span className="flex items-center gap-0.5">
+                📎 {task._count.attachments}
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* Quick Status Update - Only show if not dragging */}
+        {!isDragging && (
+          <div className="pt-2 border-t">
+            <Select
+              value={task.status}
+              onValueChange={(value) => handleStatusChange(value as TaskStatus)}
+            >
+              <SelectTrigger className="w-full h-6 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="TODO">To Do</SelectItem>
+                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                <SelectItem value="IN_REVIEW">In Review</SelectItem>
+                <SelectItem value="DONE">Done</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </CardContent>
 
       {/* Edit Task Modal */}
