@@ -211,7 +211,7 @@ export default function ProjectPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -302,57 +302,87 @@ export default function ProjectPage() {
           )}
         </div>
 
-        {/* Project Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+        {/* Project Stats with Project Details */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-lg shadow-sm border p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Tasks</p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-xs font-medium text-gray-600">Total Tasks</p>
+                <p className="text-lg font-semibold text-gray-900">
                   {project._count.tasks}
                 </p>
               </div>
-              <CheckCircle className="w-8 h-8 text-blue-500" />
+              <CheckCircle className="w-5 h-5 text-blue-500" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-xs font-medium text-gray-600">
                   Team Members
                 </p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-lg font-semibold text-gray-900">
                   {project._count.members}
                 </p>
               </div>
-              <Users className="w-8 h-8 text-green-500" />
+              <Users className="w-5 h-5 text-green-500" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Completed Tasks
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-xs font-medium text-gray-600">Completed</p>
+                <p className="text-lg font-semibold text-gray-900">
                   {
                     project.tasks.filter((task) => task.status === "DONE")
                       .length
                   }
                 </p>
               </div>
-              <CheckCircle className="w-8 h-8 text-purple-500" />
+              <CheckCircle className="w-5 h-5 text-purple-500" />
+            </div>
+          </div>
+
+          {/* Project Details Card */}
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <h3 className="text-xs font-medium text-gray-600 mb-2">
+              Project Details
+            </h3>
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center">
+                  {project.owner.avatar ? (
+                    <img
+                      src={project.owner.avatar}
+                      alt={project.owner.name}
+                      className="w-4 h-4 rounded-full"
+                    />
+                  ) : (
+                    <span className="text-xs font-medium text-gray-600">
+                      {project.owner.name?.charAt(0) ||
+                        project.owner.email.charAt(0)}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-900 truncate">
+                  {project.owner.name || project.owner.email}
+                </span>
+              </div>
+              <div>
+                <span className="text-xs text-gray-500">
+                  Created: {new Date(project.createdAt).toLocaleDateString()}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Project Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Tasks Section */}
+        {/* Main Content Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Tasks Section - Takes 3 columns */}
+          <div className="lg:col-span-3">
             <TaskManagement
               projectId={project.id}
               members={project.members}
@@ -360,94 +390,39 @@ export default function ProjectPage() {
             />
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Project Info */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Project Details
-              </h3>
-              <div className="space-y-3">
-                <div>
-                  <span className="text-sm font-medium text-gray-600">
-                    Owner
-                  </span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                      {project.owner.avatar ? (
-                        <img
-                          src={project.owner.avatar}
-                          alt={project.owner.name}
-                          className="w-8 h-8 rounded-full"
-                        />
-                      ) : (
-                        <span className="text-sm font-medium text-gray-600">
-                          {project.owner.name?.charAt(0) ||
-                            project.owner.email.charAt(0)}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-sm text-gray-900">
-                      {project.owner.name || project.owner.email}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-600">
-                    Created
-                  </span>
-                  <p className="text-sm text-gray-900">
-                    {new Date(project.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-600">
-                    Last Updated
-                  </span>
-                  <p className="text-sm text-gray-900">
-                    {new Date(project.updatedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Team Members */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
+          {/* Team Members Sidebar - Takes 1 column */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-sm border p-4 h-fit">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-gray-900">
                   Team Members
                 </h3>
                 <button className="text-blue-600 hover:text-blue-700 text-sm">
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {project.members.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                        {member.user.avatar ? (
-                          <img
-                            src={member.user.avatar}
-                            alt={member.user.name}
-                            className="w-8 h-8 rounded-full"
-                          />
-                        ) : (
-                          <span className="text-sm font-medium text-gray-600">
-                            {member.user.name?.charAt(0) ||
-                              member.user.email.charAt(0)}
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {member.user.name || member.user.email}
-                        </p>
-                        <p className="text-xs text-gray-500">{member.role}</p>
-                      </div>
+                  <div key={member.id} className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                      {member.user.avatar ? (
+                        <img
+                          src={member.user.avatar}
+                          alt={member.user.name}
+                          className="w-6 h-6 rounded-full"
+                        />
+                      ) : (
+                        <span className="text-xs font-medium text-gray-600">
+                          {member.user.name?.charAt(0) ||
+                            member.user.email.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-gray-900 truncate">
+                        {member.user.name || member.user.email}
+                      </p>
+                      <p className="text-xs text-gray-500">{member.role}</p>
                     </div>
                   </div>
                 ))}

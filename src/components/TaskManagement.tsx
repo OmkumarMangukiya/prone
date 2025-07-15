@@ -50,28 +50,28 @@ const KANBAN_COLUMNS = [
     id: "TODO" as TaskStatus,
     title: "To Do",
     color: "bg-slate-100 border-slate-300",
-    badgeColor: "outline",
+    badgeStyle: "bg-white border border-slate-300 text-slate-700",
     icon: Clock,
   },
   {
     id: "IN_PROGRESS" as TaskStatus,
     title: "In Progress",
     color: "bg-blue-50 border-blue-300",
-    badgeColor: "default",
+    badgeStyle: "bg-white border border-blue-300 text-blue-700",
     icon: Clock,
   },
   {
     id: "IN_REVIEW" as TaskStatus,
     title: "In Review",
     color: "bg-amber-50 border-amber-300",
-    badgeColor: "outline",
+    badgeStyle: "bg-white border border-amber-300 text-amber-700",
     icon: AlertCircle,
   },
   {
     id: "DONE" as TaskStatus,
     title: "Done",
     color: "bg-green-50 border-green-300",
-    badgeColor: "secondary",
+    badgeStyle: "bg-white border border-green-300 text-green-700",
     icon: CheckCircle,
   },
 ] as const;
@@ -355,10 +355,7 @@ export default function TaskManagement({
                               {column.title}
                             </h3>
                           </div>
-                          <Badge
-                            variant={column.badgeColor as any}
-                            className="text-xs"
-                          >
+                          <Badge className={`text-xs ${column.badgeStyle}`}>
                             {columnTasks.length}
                           </Badge>
                         </div>
