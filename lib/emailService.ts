@@ -7,25 +7,30 @@ interface EmailConfig {
   html: string;
 }
 
-// transporter for sending emails
-function createTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '465'),
-    secure: true, // true for 465, false for other ports (587 , 25) 465 is the most secure 
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+// cached transporter
+let transporter: nodemailer.Transporter | null = null;
+
+function getTransporter() {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '465'),
+      secure: true, // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  }
+  return transporter;
 }
 
 // send email function
-export async function sendEmail({ from, to, subject, html }: EmailConfig) {
+export async function sendEmail({ from, to, subject, html }: Partial<EmailConfig> & { to: string; subject: string; html: string }) {
   try {
-    const transporter = createTransporter();
+    const transport = getTransporter();
 
-    const info = await transporter.sendMail({
+    const info = await transport.sendMail({
       from: from || process.env.SMTP_USER,
       to,
       subject,
@@ -40,40 +45,37 @@ export async function sendEmail({ from, to, subject, html }: EmailConfig) {
   }
 }
 
-// OTP generation
-export function generateOTP(length: number = 6) : string {
-  return Math.floor(Math.random() * Math.pow(10, length))
-    .toString()
-    .padStart(length, '0');
-}
+
 
 // email templates
 export const emailTemplates = {
-  verifyEmail: (otp: string, userName: string) => `
+  verifyEmail: (link: string, userName: string) => `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <h2 style="color: #333; text-align: center;">Email Verification</h2>
       <p>Hello ${userName},</p>
-      <p>Thank you for registering with Prone Project Management. Please use the following OTP to verify your email address:</p>
-      <div style="background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;">
-        <h1 style="color: #2563eb; font-size: 32px; margin: 0; letter-spacing: 5px;">${otp}</h1>
+      <p>Thank you for registering with Prone Project Management. Please click the button below to verify your email address:</p>
+      <div style="text-align: center; margin: 20px 0;">
+        <a href="${link}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Verify Email</a>
       </div>
-      <p>This OTP will expire in 10 minutes.</p>
+      <p style="text-align: center; color: #666; font-size: 14px;">Or copy this link to your browser: <br><a href="${link}" style="color: #2563eb;">${link}</a></p>
+      <p>This link will expire in 1 hour.</p>
       <p>If you didn't create an account, please ignore this email.</p>
       <br>
       <p>Best regards,<br>Prone Team</p>
     </div>
   `,
 
-  resetPassword: (otp: string, userName: string) => `
+  resetPassword: (link: string, userName: string) => `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <h2 style="color: #333; text-align: center;">Password Reset Request</h2>
       <p>Hello ${userName},</p>
-      <p>You have requested to reset your password. Please use the following OTP to reset your password:</p>
-      <div style="background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;">
-        <h1 style="color: #dc2626; font-size: 32px; margin: 0; letter-spacing: 5px;">${otp}</h1>
+      <p>You have requested to reset your password. Please click the button below to reset your password:</p>
+      <div style="text-align: center; margin: 20px 0;">
+        <a href="${link}" style="background-color: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
       </div>
-      <p>This OTP will expire in 10 minutes.</p>
-      <p>If you didn't request a password reset, please ignore this email or contact support if you have concerns.</p>
+      <p style="text-align: center; color: #666; font-size: 14px;">Or copy this link to your browser: <br><a href="${link}" style="color: #dc2626;">${link}</a></p>
+      <p>This link will expire in 1 hour.</p>
+      <p>If you didn't request a password reset, please ignore this email.</p>
       <br>
       <p>Best regards,<br>Prone Team</p>
     </div>

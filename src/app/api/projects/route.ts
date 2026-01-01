@@ -13,7 +13,7 @@ const createProjectSchema = z.object({
     categoryId: z.string().optional(),
 });
 
-const updateProjectSchema = createProjectSchema.partial();
+
 
 // Get all projects for the authenticated user
 export async function GET(request: NextRequest) {
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
         const status = searchParams.get("status");
         const category = searchParams.get("category");
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const whereClause: any = {
             OR: [
                 { ownerId: session.user.id },

@@ -259,7 +259,8 @@ This section details the key directories and files that power the backend functi
 ### `/lib` - Core Libraries & Utilities
 
 - **`auth.ts`** - Central configuration for NextAuth.js, including providers, callbacks, and session strategy.
-- **`emailService.ts`** - Email sending service with OTP generation and HTML templates.
+- **`emailService.ts`** - Email sending service with HTML templates.
+- **`tokens.ts`** - JWT token generation and verification utilities.
 - **`prismaClient.ts`** - Database client configuration and connection.
 
 ### `/prisma` - Database Management
@@ -267,6 +268,7 @@ This section details the key directories and files that power the backend functi
 - **`schema.prisma`** - Database schema definition with models and relationships.
 - **`seed.ts`** - Database seeding script for initial data.
 - **`migrations/`** - Database migration files for schema versioning.
+- **`prisma.config.ts`** - Database connection configuration.
 
 ### `/src/app/api` - API Routes
 
@@ -275,36 +277,18 @@ This section details the key directories and files that power the backend functi
 - **`auth/[...nextauth]/route.ts`** - Core NextAuth.js handler for session management, sign-in, sign-out, etc.
 - **`auth/signin/route.ts`** - Custom endpoint for pre-validating user credentials before handing off to NextAuth.js.
 - **`auth/signup/route.ts`** - Handles new user registration and triggers email verification.
-- **`auth/send-otp/route.ts`** - Manages OTP generation and sending for verification and password resets.
-- **`auth/verify-otp/route.ts`** - Validates OTPs submitted by users.
-- **`auth/reset-password/route.ts`** - Handles the password reset process after OTP verification.
+- **`auth/send-verification/route.ts`** - Manages sending verification emails and password reset links.
+- **`auth/verify-token/route.ts`** - Validates JWT tokens for email verification.
+- **`auth/reset-password/route.ts`** - Handles the password reset process with token verification.
 
-#### User Management APIs
-
-- **`user/profile/route.ts`** - API endpoint for managing user profile data (fetching, updating).
-- **`user/profile/change-password/route.ts`** - Securely handles requests to change a user's password.
-
-#### Project Management APIs
-
-- **`projects/route.ts`** - CRUD operations for projects (create, read with filtering).
-- **`projects/[id]/route.ts`** - Individual project operations (get, update, delete).
-- **`project-categories/route.ts`** - Dynamic project categories with create functionality.
-
-#### Task Management APIs
-
-- **`tasks/route.ts`** - Task CRUD operations (create, list with filtering by project, status, assignee).
-- **`tasks/[id]/route.ts`** - Individual task operations (get details, update, delete with permissions).
-
-#### Development APIs
-
-- **`dev/delete-user/route.ts`** - Development utility for deleting users, useful for testing.
 
 ### `/src/app/(auth)` - Authentication Pages (UI)
 
 - **`signin/page.tsx`** - User login interface with email/password authentication.
 - **`signup/page.tsx`** - User registration form with email verification flow.
-- **`verify-email/page.tsx`** - Interface for users to enter their OTP to verify their email.
+- **`verify-email/page.tsx`** - Interface for users to enter their OTP/Token manually if needed.
 - **`forgot-password/page.tsx`** - Page for users to request a password reset via email.
+- **`reset-password/page.tsx`** - Page for resetting the password using a valid token.
 
 ### `/src/app/dashboard` - Main Application Pages (UI)
 
@@ -324,18 +308,24 @@ This section details the key directories and files that power the backend functi
 
 - **`Providers.tsx`** - Wraps the application with necessary context providers (e.g., NextAuth SessionProvider).
 - **`Navigation.tsx`** - Main navigation component with responsive design and user menu.
-- **`DevTools.tsx`** - Development utilities and debugging tools.
-- **`TaskManagement.tsx`** - Comprehensive task management component with enhanced Kanban board, drag-and-drop functionality, filtering, and CRUD operations.
+- **`TaskManagement.tsx`** - Displays the task board, filtering, and interactions.
+- **`TaskCard.tsx`** - Individual task card component with drag-and-drop support and quick actions.
+- **`TaskForm.tsx`** - Reusable form component for creating and editing tasks.
+- **`ProjectForm.tsx`** - Reusable form component for creating and editing projects.
+- **`TaskDetailsModal.tsx`** - Focused modal for viewing task details with comments.
+- **`CreateTaskModal.tsx`** & **`EditTaskModal.tsx`** - Modals utilizing `TaskForm` for task lifecycle management.
+- **`CreateProjectModal.tsx`** & **`EditProjectModal.tsx`** - Modals utilizing `ProjectForm` for project management.
 
 ### `/docs` - Documentation
 
 - **`how-it-works/auth.md`** - Detailed documentation of the authentication system architecture and flows.
 - **`how-it-works/crud_project.md`** - Project creation and management system documentation.
 - **`how-it-works/task_management.md`** - Task management system architecture with Kanban board implementation details.
+- **`how-it-works/dashboard_profile.md`** - Overview of the Dashboard and User Profile features.
 
 ### Configuration Files
 
-- **`PRODUCTION_CLEANUP.md`** - Checklist of development-only features that must be removed before production deployment.
+
 - **`package.json`** - Project dependencies including @hello-pangea/dnd for drag-and-drop functionality.
 - **`tsconfig.json`** - TypeScript configuration for type safety across the application.
 - **`next.config.ts`** - Next.js configuration for build optimization and deployment settings.

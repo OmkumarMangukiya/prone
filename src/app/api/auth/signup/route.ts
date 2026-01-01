@@ -1,7 +1,8 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../../../../../lib/prismaClient";
 import { NextResponse } from "next/server";
-import { sendEmail, generateOTP, emailTemplates } from "../../../../../lib/emailService";
+import { sendEmail, emailTemplates } from "../../../../../lib/emailService";
+import { generateToken } from "../../../../../lib/tokens";
 
 export async function POST(request: Request) {
     try {
@@ -39,28 +40,19 @@ export async function POST(request: Request) {
         });
 
         // Generate and send verification email
-        const otp = generateOTP();
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-        // Store OTP in database
-        await prisma.oTP.create({
-            data: {
-                email,
-                otp,
-                type: 'EMAIL_VERIFICATION',
-                expiresAt,
-            },
-        });
+        const token = generateToken({ email, type: 'EMAIL_VERIFICATION' });
+        const verifyLink = `${process.env.NEXTAUTH_URL}/verify-email?token=${token}`;
 
         // Send verification email
         const emailResult = await sendEmail({
             from: process.env.SMTP_USER!,
             to: email,
             subject: 'Verify Your Email - Prone Project Management',
-            html: emailTemplates.verifyEmail(otp, name || 'User'),
+            html: emailTemplates.verifyEmail(verifyLink, name || 'User'),
         });
 
         // Return user data (excluding password)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password: _, ...userData } = user;
 
         return NextResponse.json({

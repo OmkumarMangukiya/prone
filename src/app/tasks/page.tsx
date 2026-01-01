@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import TaskDetailsModal from "@/components/TaskDetailsModal";
 
 interface Task {
   id: string;
@@ -71,6 +72,7 @@ export default function TasksPage() {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [projectFilter, setProjectFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -340,9 +342,8 @@ export default function TasksPage() {
                 <Filter className="w-4 h-4" />
                 Filters
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform ${
-                    showFilters ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""
+                    }`}
                 />
               </Button>
             </div>
@@ -453,9 +454,9 @@ export default function TasksPage() {
               </h3>
               <p className="text-gray-600 mb-6">
                 {searchTerm ||
-                statusFilter !== "all" ||
-                priorityFilter !== "all" ||
-                projectFilter !== "all"
+                  statusFilter !== "all" ||
+                  priorityFilter !== "all" ||
+                  projectFilter !== "all"
                   ? "Try adjusting your filters or search terms."
                   : "You don't have any tasks assigned yet."}
               </p>
@@ -473,7 +474,7 @@ export default function TasksPage() {
                 <div
                   key={task.id}
                   className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => router.push(`/projects/${task.project.id}`)}
+                  onClick={() => setSelectedTaskId(task.id)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
@@ -559,6 +560,13 @@ export default function TasksPage() {
           )}
         </Card>
       </div>
+
+      {selectedTaskId && (
+        <TaskDetailsModal
+          taskId={selectedTaskId}
+          onClose={() => setSelectedTaskId(null)}
+        />
+      )}
     </div>
   );
 }

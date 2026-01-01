@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const whereClause: Record<string, any> = {
             projectId,
         };
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
                 _count: {
                     select: {
                         comments: true,
-                        attachments: true,
+
                     },
                 },
             },
@@ -205,7 +206,6 @@ export async function POST(request: NextRequest) {
                 _count: {
                     select: {
                         comments: true,
-                        attachments: true,
                     },
                 },
             },

@@ -10,6 +10,7 @@ const updateProjectSchema = z.object({
     description: z.string().max(500, "Description must be less than 500 characters").optional(),
     status: z.enum(["ACTIVE", "ON_HOLD", "COMPLETED", "ARCHIVED"]).optional(),
     color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid color format").optional(),
+    categoryId: z.string().optional(),
 });
 
 // Get a specific project

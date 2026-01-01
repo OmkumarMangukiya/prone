@@ -1,173 +1,135 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect, Suspense } from "react";
+
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-export default function VerifyEmail() {
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
+function VerifyEmailContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
+  const [email, setEmail] = useState("");
+  const [resending, setResending] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const token = searchParams.get("token");
 
   useEffect(() => {
-    // Get email from URL parameter
-    const emailParam = searchParams.get("email");
-    if (emailParam) {
-      setEmail(emailParam);
-      // Automatically send OTP when component loads
-      sendOtp(emailParam);
-    } else {
-      // If no email parameter, redirect to signup
-      router.push("/signup");
-    }
-  }, [searchParams, router]);
-
-  async function sendOtp(emailToSend: string) {
-    setSendingOtp(true);
-    setError("");
-
-    try {
-      const response = await axios.post("/api/auth/send-otp", {
-        email: emailToSend,
-        type: "EMAIL_VERIFICATION",
-      });
-
-      if (response.data.success) {
-        setOtpSent(true);
-        setSuccess("OTP sent to your email! Please check your inbox.");
-      } else {
-        setError(response.data.message || "Failed to send OTP");
+    async function verifyToken(tokenToVerify: string) {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await axios.post("/api/auth/verify-token", { token: tokenToVerify });
+        if (response.data.success) {
+          setSuccess("Email verified successfully! You can now sign in.");
+          setTimeout(() => {
+            router.push("/signin?verified=true");
+          }, 2000);
+        } else {
+          setError(response.data.message || "Invalid token");
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (err: any) {
+        setError(err.response?.data?.message || "Verification failed");
+      } finally {
+        setLoading(false);
       }
-    } catch (error: unknown) {
-      setError((error as any)?.response?.data?.message || "Failed to send OTP");
-    } finally {
-      setSendingOtp(false);
     }
-  }
 
-  async function handleVerifyOtp() {
-    if (!otp) {
-      setError("Please enter the OTP");
+    if (token) {
+      verifyToken(token);
+    }
+  }, [token, router]);
+
+  async function handleResend() {
+    if (!email) {
+      setError("Please enter your email");
       return;
     }
-
-    setLoading(true);
+    setResending(true);
     setError("");
-
     try {
-      const response = await axios.post("/api/auth/verify-otp", {
+      const response = await axios.post("/api/auth/send-verification", {
         email,
-        otp,
-        type: "EMAIL_VERIFICATION",
+        type: 'EMAIL_VERIFICATION'
       });
-
       if (response.data.success) {
-        setSuccess("Email verified successfully! Signing you in...");
-
-        // Auto-signin using NextAuth
-        const result = await signIn("auto-signin", {
-          email,
-          verified: "true",
-          redirect: false,
-        });
-
-        if (result?.ok) {
-          setTimeout(() => {
-            router.push("/dashboard");
-          }, 1500);
-        } else {
-          // Fallback to signin page if auto-signin fails
-          setTimeout(() => {
-            router.push("/signin?message=Email verified successfully");
-          }, 2000);
-        }
-      } else {
-        setError(response.data.message || "Invalid OTP");
+        setSuccess("Verification link sent! Check your email.");
       }
-    } catch (error: unknown) {
-      setError(
-        (error as any)?.response?.data?.message || "OTP verification failed"
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to send link");
     } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleResendOtp() {
-    if (email) {
-      await sendOtp(email);
+      setResending(false);
     }
   }
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
-        Verify Your Email
-      </h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/30 px-4">
+      <Card className="w-full max-w-[420px] shadow-sm border-gray-100">
+        <CardHeader className="space-y-4 pt-10 px-10 pb-0">
+          <CardTitle className="text-2xl text-center font-semibold tracking-tight">Email Verification</CardTitle>
+          <CardDescription className="text-center text-sm text-gray-500">
+            {token ? "Verifying your email..." : "Verify your email address"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-10 space-y-6">
+          {loading && (
+            <div className="text-center py-4">
+              <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+              <p className="text-sm text-gray-600">Verifying...</p>
+            </div>
+          )}
 
-      <div className="mb-4 text-center">
-        <p className="text-sm text-gray-600">
-          We've sent a verification code to:
-        </p>
-        <p className="font-medium text-blue-600">{email}</p>
-      </div>
+          {!loading && error && (
+            <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-4 text-sm">
+              {error}
+              {token && <p className="mt-2 text-xs">The link may be expired. Try requesting a new one below.</p>}
+            </div>
+          )}
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
+          {!loading && success && (
+            <div className="bg-green-50 text-green-600 p-4 rounded-lg mb-4 text-sm">
+              {success}
+            </div>
+          )}
 
-      {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-          {success}
-        </div>
-      )}
+          {!loading && (!token || error) && (
+            <div className="space-y-6">
+              <p className="text-sm text-center text-gray-500">Enter your email to receive a new verification link.</p>
+              <Input
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-10"
+              />
+              <Button className="w-full h-10 font-medium" onClick={handleResend} disabled={resending}>
+                {resending ? "Sending..." : "Send Verification Link"}
+              </Button>
+            </div>
+          )}
 
-      {sendingOtp && (
-        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
-          Sending OTP to your email...
-        </div>
-      )}
-
-      {otpSent && (
-        <div className="space-y-4">
-          <input
-            type="text"
-            placeholder="Enter 6-digit OTP"
-            value={otp}
-            onChange={(e) =>
-              setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-            }
-            maxLength={6}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg tracking-widest"
-          />
-
-          <button
-            onClick={handleVerifyOtp}
-            disabled={loading || !otp}
-            className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
-          >
-            {loading ? "Verifying..." : "Verify Email"}
-          </button>
-
-          <button
-            onClick={handleResendOtp}
-            disabled={sendingOtp}
-            className="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50"
-          >
-            {sendingOtp ? "Sending..." : "Resend OTP"}
-          </button>
-        </div>
-      )}
+          {!loading && success && !token && (
+            <Button className="w-full mt-4 h-10 font-medium" onClick={() => router.push("/signin")}>
+              Go to Sign In
+            </Button>
+          )}
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+export default function VerifyEmail() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

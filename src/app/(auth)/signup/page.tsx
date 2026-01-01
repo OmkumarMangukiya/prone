@@ -55,8 +55,9 @@ export default function Signup() {
         // Redirect to email verification page with email parameter
         router.push(`/verify-email?email=${encodeURIComponent(email)}`);
       }
-    } catch (err: unknown) {
-      setError((err as any)?.response?.data?.message || "Signup failed");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
     }
@@ -78,24 +79,24 @@ export default function Signup() {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Sign Up</CardTitle>
-          <CardDescription className="text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/30 px-4">
+      <Card className="w-full max-w-[420px] shadow-sm border-gray-100">
+        <CardHeader className="space-y-4 pt-10 px-10 pb-0">
+          <CardTitle className="text-2xl text-center font-semibold tracking-tight">Sign Up</CardTitle>
+          <CardDescription className="text-center text-sm text-gray-500">
             Create your account to get started
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-10 space-y-6">
           {error && (
-            <div className="p-4 rounded-md mb-4 text-sm bg-red-50 border border-red-200 text-red-800">
+            <div className="p-4 rounded-lg mb-4 text-sm bg-red-50 text-red-600">
               {error}
             </div>
           )}
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</Label>
               <Input
                 id="name"
                 type="text"
@@ -103,11 +104,12 @@ export default function Signup() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your full name"
                 disabled={loading}
+                className="h-10"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -115,11 +117,12 @@ export default function Signup() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 disabled={loading}
+                className="h-10"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -127,11 +130,12 @@ export default function Signup() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 disabled={loading}
+                className="h-10"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -139,6 +143,7 @@ export default function Signup() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
                 disabled={loading}
+                className="h-10"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleSignup();
@@ -150,22 +155,22 @@ export default function Signup() {
             <Button
               onClick={handleSignup}
               disabled={loading}
-              className="w-full"
+              className="w-full h-10 font-medium"
             >
               {loading ? "Creating account..." : "Sign Up"}
             </Button>
 
             <div className="text-center">
-              <div className="text-sm text-muted-foreground">
+              <span className="text-sm text-gray-500">
                 Already have an account?{" "}
-                <Button
-                  variant="link"
-                  onClick={() => router.push("/signin")}
-                  className="p-0 h-auto"
-                >
-                  Sign in
-                </Button>
-              </div>
+              </span>
+              <Button
+                variant="link"
+                onClick={() => router.push("/signin")}
+                className="p-0 h-auto text-sm text-blue-600 font-medium hover:text-blue-800"
+              >
+                Sign in
+              </Button>
             </div>
           </div>
         </CardContent>

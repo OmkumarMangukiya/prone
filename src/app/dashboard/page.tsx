@@ -3,9 +3,9 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import DevTools from "../../components/DevTools";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 
 // Types for project data
 interface Project {
@@ -112,7 +112,10 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Card
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => router.push("/tasks")}
+              >
                 <CardContent className="p-6">
                   <CardTitle className="text-xl mb-4">Tasks</CardTitle>
                   <p className="text-muted-foreground mb-4">
@@ -125,7 +128,10 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Card
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => router.push("/team")}
+              >
                 <CardContent className="p-6">
                   <CardTitle className="text-xl mb-4">Collaboration</CardTitle>
                   <p className="text-muted-foreground mb-4">
@@ -139,30 +145,6 @@ export default function Dashboard() {
               </Card>
             </div>
 
-            <div className="mt-8 text-center">
-              <p className="text-muted-foreground mb-4">
-                Welcome! Your project management system is ready. You can now
-                create projects, manage tasks, and collaborate with your team.
-              </p>
-              <Card className="bg-muted">
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">
-                    Project Management Features:
-                  </h3>
-                  <ul className="text-sm text-left space-y-1">
-                    <li>• Create and manage projects with categories</li>
-                    <li>
-                      • Project status management (Active, On Hold, Completed)
-                    </li>
-                    <li>• Form validation and configuration</li>
-                    <li>• Team collaboration and member management</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Development Tools */}
-            <DevTools />
           </CardContent>
         </Card>
       </div>

@@ -85,11 +85,11 @@ export async function GET(
                         createdAt: "desc",
                     },
                 },
-                attachments: true,
+
                 _count: {
                     select: {
                         comments: true,
-                        attachments: true,
+
                     },
                 },
             },
@@ -168,6 +168,7 @@ export async function PUT(
 
         const taskData = validationResult.data;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updateData: Record<string, any> = { ...taskData };
         if (taskData.dueDate !== undefined) {
             updateData.dueDate = taskData.dueDate ? new Date(taskData.dueDate) : null;
@@ -194,7 +195,7 @@ export async function PUT(
                 _count: {
                     select: {
                         comments: true,
-                        attachments: true,
+
                     },
                 },
             },

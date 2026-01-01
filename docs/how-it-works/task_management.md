@@ -33,25 +33,49 @@ The task management system provides comprehensive CRUD operations for tasks with
 
 #### `TaskManagement.tsx`
 
-Main component that provides:
+The main orchestrator component that manages the state and layout of the task system:
 
-- **Enhanced Kanban Board**: Four-column layout with drag-and-drop functionality
-- **Task Filtering**: Advanced filtering by status and assignee with collapsible panel
-- **Create Task Modal**: Comprehensive task creation with validation
-- **Real-time Updates**: Optimistic UI updates with server synchronization
-- **Responsive Design**: Mobile-first layout that adapts to screen size
-- **Loading States**: Skeleton loading animations for better UX
+- **State Management**: Handles optimistic updates, drag-and-drop logic, and filter state
+- **Component Composition**: Orchestrates the `TaskCard`, `CreateTaskModal`, and `EditTaskModal` components
+- **Layouts**: Renders the Kanban board with drag-and-drop zones
+- **Responsive Design**: Adapts layout for mobile and desktop views
 
-#### Enhanced Task Card Features
+#### `TaskCard.tsx`
+
+A reusable component representing a single task card in the board:
 
 - **Drag Handle**: Visual grip icon for intuitive drag-and-drop
 - **Priority Indicators**: Color-coded badges with emoji indicators
 - **Due Date Management**: Calendar display with overdue warnings
 - **Assignee Display**: User avatars with fallback initials
-- **Task Metadata**: Comment and attachment counts
-- **Action Menu**: Edit and delete options with permission checks
+- **Task Metadata**: Comment counts and other key metrics
+- **Action Menu**: Context menu for Edit and Delete actions
 - **Visual States**: Hover effects, dragging states, and smooth transitions
-- **Quick Status Updates**: Dropdown for manual status changes (when not dragging)
+
+#### `TaskForm.tsx`
+Reusable form component that handles all task data entry logic:
+
+- **Unified Logic**: Handles state, validation, and submission for both creating and editing tasks
+- **Rich Input**: Support for due dates, priority selection, and assignee assignment
+- **Styling**: Consistent usage of UI components (Input, Select, Textarea)
+
+#### `CreateTaskModal.tsx` & `EditTaskModal.tsx`
+
+Lightweight wrapper components:
+
+- **Dialog Integration**: Wraps `TaskForm` in a standardized `Dialog` component
+- **Context Awareness**: Passes specific props (like `projectId` or existing `task` data) to the form
+- **Lifecycle Management**: Handles open/close states and refresh triggers on success
+
+#### `TaskDetailsModal.tsx`
+
+A focused modal component for viewing and interacting with a single task:
+
+- **Detailed View**: Shows full task title, description, and metadata
+- **Comments System**: Integrated commenting with realtime updates and user attribution
+- **Sidebar Layout**: Dedicated space for metadata (Assignee, Due Date, Priority, Status)
+- **Minimalist Design**: Clean, centered layout with translucent backdrop (glassmorphism)
+- **Status Badges**: Visual indicators for status and priority
 
 ## Data Flow
 
@@ -74,6 +98,25 @@ sequenceDiagram
     DB-->>TaskAPI: Return created task
     TaskAPI-->>TaskMgmt: Return success response
     TaskMgmt->>TaskMgmt: Refresh task list
+```
+
+### Viewing Task Details
+
+```mermaid
+sequenceDiagram
+    participant User as User
+    participant TaskCard as TaskCard
+    participant TaskModal as TaskDetailsModal
+    participant TaskAPI as /api/tasks/[id]
+    participant DB as Database
+
+    User->>TaskCard: Click on task
+    TaskCard->>TaskModal: Open Modal (Loading State)
+    TaskModal->>TaskAPI: GET /api/tasks/[id]
+    TaskAPI->>DB: Fetch task with comments & assignee
+    DB-->>TaskAPI: Return complete task data
+    TaskAPI-->>TaskModal: Return { task: ... }
+    TaskModal->>TaskModal: Render task details & comments
 ```
 
 ### Updating a Task via Drag & Drop
@@ -177,10 +220,16 @@ Users can move tasks between any status, providing flexibility in workflow manag
 - **Priority Indicators**: Color-coded priority badges 
 - **Due Date Tracking**: Calendar icons with overdue warnings and visual indicators
 - **Assignee Information**: User avatars and names with fallback initials
-- **Task Metadata**: Comments and attachments count display
+- **Task Metadata**: Comments count display
 - **Overdue Alerts**: Red styling and warning icons for overdue tasks
 - **Hover Effects**: Smooth transitions and shadow effects for better interactivity
 - **Action Menu**: Edit and delete options accessible via dropdown menu
+
+### Task Details Modal
+- **Rich Content**: Displays full title, description, and metadata
+- **Comments**: Integrated commenting system for task discussions
+- **Design**: Modern, glassmorphism-inspired translucent UI
+- **Navigation**: Easy close with standardized left-side button or backdrop click
 
 ### Filtering
 
@@ -204,6 +253,7 @@ Users can move tasks between any status, providing flexibility in workflow manag
 - Due date with calendar icon
 - Assignee information with avatar
 - Creation and update timestamps
+- Nested Comments with author bio
 
 ### Validation
 
@@ -220,6 +270,7 @@ The task system uses the existing Prisma schema with these key models:
 - **User**: Task assignees
 - **Project**: Task container with member relationships
 - **ProjectMember**: Defines user roles and permissions
+- **Comment**: Associated comments for task discussions
 
 ## API Endpoints
 
@@ -227,7 +278,7 @@ The task system uses the existing Prisma schema with these key models:
 | ------ | --------------------------- | ------------------ | ------------------- |
 | GET    | `/api/tasks?projectId={id}` | List project tasks | Project member      |
 | POST   | `/api/tasks`                | Create new task    | Owner/Admin/Manager |
-| GET    | `/api/tasks/{id}`           | Get task details   | Project member      |
+| GET    | `/api/tasks/{id}`           | Get task details & comments | Project member      |
 | PUT    | `/api/tasks/{id}`           | Update task        | Owner/Admin/Manager |
 | DELETE | `/api/tasks/{id}`           | Delete task        | Owner/Admin         |
 
@@ -253,9 +304,8 @@ The task management system is integrated into the project detail page (`/project
 4. **Task Dependencies**: Link tasks with dependencies and prerequisites
 5. **Custom Fields**: Allow projects to define custom task fields
 6. **Advanced Filtering**: Date range filters, custom field filters
-7. **Task Comments**: Inline commenting system for task discussions
-8. **File Attachments**: Attach files and documents to tasks
-9. **Notifications**: Real-time notifications for task assignments and updates
-10. **Board Customization**: Custom column creation and board layouts
-11. **Task Archiving**: Archive completed tasks while maintaining history
-12. **Keyboard Shortcuts**: Power user keyboard shortcuts for common actions
+7. **File Attachments**: Attach files and documents to tasks
+8. **Notifications**: Real-time notifications for task assignments and updates
+9. **Board Customization**: Custom column creation and board layouts
+10. **Task Archiving**: Archive completed tasks while maintaining history
+11. **Keyboard Shortcuts**: Power user keyboard shortcuts for common actions

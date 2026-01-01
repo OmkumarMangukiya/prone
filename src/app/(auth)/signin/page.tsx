@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function Signin() {
+function SigninContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -97,29 +97,28 @@ export default function Signin() {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Sign In</CardTitle>
-          <CardDescription className="text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/30 px-4">
+      <Card className="w-full max-w-[420px] shadow-sm border-gray-100">
+        <CardHeader className="space-y-4 pt-10 px-10 pb-0">
+          <CardTitle className="text-2xl text-center font-semibold tracking-tight">Sign In</CardTitle>
+          <CardDescription className="text-center text-sm text-gray-500">
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-10 space-y-6">
           {error && (
             <div
-              className={`p-4 rounded-md mb-4 text-sm ${
-                needsVerification
-                  ? "bg-yellow-50 border border-yellow-200 text-yellow-800"
-                  : "bg-red-50 border border-red-200 text-red-800"
-              }`}
+              className={`p-4 rounded-lg text-sm ${needsVerification
+                ? "bg-yellow-50 text-yellow-800"
+                : "bg-red-50 text-red-600"
+                }`}
             >
               <p>{error}</p>
               {needsVerification && (
                 <Button
                   variant="link"
                   onClick={handleGoToVerification}
-                  className="p-0 h-auto text-yellow-800 underline mt-2"
+                  className="p-0 h-auto text-yellow-800 underline mt-2 font-medium"
                 >
                   Go to email verification
                 </Button>
@@ -127,9 +126,9 @@ export default function Signin() {
             </div>
           )}
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -137,11 +136,22 @@ export default function Signin() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 disabled={loading}
+                className="h-10"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                <Button
+                  variant="link"
+                  onClick={() => router.push("/forgot-password")}
+                  className="p-0 h-auto text-xs text-blue-600 font-medium hover:text-blue-800"
+                  tabIndex={-1}
+                >
+                  Forgot password?
+                </Button>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -149,6 +159,7 @@ export default function Signin() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 disabled={loading}
+                className="h-10"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleSignin();
@@ -160,34 +171,34 @@ export default function Signin() {
             <Button
               onClick={handleSignin}
               disabled={loading}
-              className="w-full"
+              className="w-full h-10 font-medium"
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>
 
-            <div className="text-center space-y-2">
+            <div className="text-center">
+              <span className="text-sm text-gray-500">
+                Don&apos;t have an account?{" "}
+              </span>
               <Button
                 variant="link"
-                onClick={() => router.push("/forgot-password")}
-                className="text-sm text-muted-foreground"
+                onClick={() => router.push("/signup")}
+                className="p-0 h-auto text-sm text-blue-600 font-medium hover:text-blue-800"
               >
-                Forgot your password?
+                Sign up
               </Button>
-
-              <div className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
-                <Button
-                  variant="link"
-                  onClick={() => router.push("/signup")}
-                  className="p-0 h-auto"
-                >
-                  Sign up
-                </Button>
-              </div>
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function Signin() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SigninContent />
+    </Suspense>
   );
 }

@@ -18,6 +18,7 @@ import {
   Plus,
 } from "lucide-react";
 import TaskManagement from "../../../components/TaskManagement";
+import EditProjectModal from "@/components/EditProjectModal";
 
 interface Project {
   id: string;
@@ -25,6 +26,11 @@ interface Project {
   description?: string;
   status: "ACTIVE" | "ON_HOLD" | "COMPLETED" | "ARCHIVED";
   color?: string;
+  category?: {
+    id: string;
+    name: string;
+    color: string;
+  };
   createdAt: string;
   updatedAt: string;
   owner: {
@@ -62,6 +68,12 @@ interface Project {
   };
 }
 
+interface ProjectCategory {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export default function ProjectPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -69,6 +81,7 @@ export default function ProjectPage() {
   const projectId = params.id as string;
 
   const [project, setProject] = useState<Project | null>(null);
+  const [categories, setCategories] = useState<ProjectCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showSettings, setShowSettings] = useState(false);
@@ -82,6 +95,7 @@ export default function ProjectPage() {
 
     if (status === "authenticated" && projectId) {
       fetchProject();
+      fetchCategories();
     }
   }, [status, router, projectId]);
 
@@ -99,6 +113,20 @@ export default function ProjectPage() {
       setError("An error occurred while fetching the project");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("/api/project-categories");
+      const data = await response.json();
+
+      if (response.ok) {
+        setCategories(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+      setCategories([]);
     }
   };
 
@@ -302,82 +330,6 @@ export default function ProjectPage() {
           )}
         </div>
 
-        {/* Project Stats with Project Details */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-gray-600">Total Tasks</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {project._count.tasks}
-                </p>
-              </div>
-              <CheckCircle className="w-5 h-5 text-blue-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-gray-600">
-                  Team Members
-                </p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {project._count.members}
-                </p>
-              </div>
-              <Users className="w-5 h-5 text-green-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-gray-600">Completed</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {
-                    project.tasks.filter((task) => task.status === "DONE")
-                      .length
-                  }
-                </p>
-              </div>
-              <CheckCircle className="w-5 h-5 text-purple-500" />
-            </div>
-          </div>
-
-          {/* Project Details Card */}
-          <div className="bg-white rounded-lg shadow-sm border p-4">
-            <h3 className="text-xs font-medium text-gray-600 mb-2">
-              Project Details
-            </h3>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center">
-                  {project.owner.avatar ? (
-                    <img
-                      src={project.owner.avatar}
-                      alt={project.owner.name}
-                      className="w-4 h-4 rounded-full"
-                    />
-                  ) : (
-                    <span className="text-xs font-medium text-gray-600">
-                      {project.owner.name?.charAt(0) ||
-                        project.owner.email.charAt(0)}
-                    </span>
-                  )}
-                </div>
-                <span className="text-xs text-gray-900 truncate">
-                  {project.owner.name || project.owner.email}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-gray-500">
-                  Created: {new Date(project.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -390,8 +342,71 @@ export default function ProjectPage() {
             />
           </div>
 
-          {/* Team Members Sidebar - Takes 1 column */}
-          <div className="lg:col-span-1">
+          {/* Right Sidebar - Takes 1 column */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Project Details */}
+            <div className="bg-white rounded-lg shadow-sm border p-4">
+              <h3 className="text-base font-semibold text-gray-900 mb-4">
+                Project Details
+              </h3>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Total Tasks</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-900">{project._count.tasks}</span>
+                    <CheckCircle className="w-4 h-4 text-blue-500" />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Completed</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {project.tasks.filter((task) => task.status === "DONE").length}
+                    </span>
+                    <CheckCircle className="w-4 h-4 text-purple-500" />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Members</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-900">{project._count.members}</span>
+                    <Users className="w-4 h-4 text-green-500" />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                      {project.owner.avatar ? (
+                        <img
+                          src={project.owner.avatar}
+                          alt={project.owner.name}
+                          className="w-8 h-8 rounded-full"
+                        />
+                      ) : (
+                        <span className="text-xs font-medium text-gray-600">
+                          {project.owner.name?.charAt(0) || project.owner.email.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{project.owner.name || project.owner.email}</p>
+                      <p className="text-xs text-gray-500">Project Owner</p>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-gray-500 flex justify-between items-center">
+                    <span>Created</span>
+                    <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Team Members */}
             <div className="bg-white rounded-lg shadow-sm border p-4 h-fit">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold text-gray-900">
@@ -401,15 +416,15 @@ export default function ProjectPage() {
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
                 {project.members.map((member) => (
                   <div key={member.id} className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                       {member.user.avatar ? (
                         <img
                           src={member.user.avatar}
                           alt={member.user.name}
-                          className="w-6 h-6 rounded-full"
+                          className="w-8 h-8 rounded-full"
                         />
                       ) : (
                         <span className="text-xs font-medium text-gray-600">
@@ -419,7 +434,7 @@ export default function ProjectPage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-gray-900 truncate">
                         {member.user.name || member.user.email}
                       </p>
                       <p className="text-xs text-gray-500">{member.role}</p>
@@ -432,9 +447,10 @@ export default function ProjectPage() {
         </div>
 
         {/* Edit Project Modal */}
-        {showEditModal && (
+        {showEditModal && project && (
           <EditProjectModal
             project={project}
+            categories={categories}
             onClose={() => setShowEditModal(false)}
             onSuccess={() => {
               setShowEditModal(false);
@@ -447,168 +463,4 @@ export default function ProjectPage() {
   );
 }
 
-// Edit Project Modal Component
-interface EditProjectModalProps {
-  project: Project;
-  onClose: () => void;
-  onSuccess: () => void;
-}
 
-function EditProjectModal({
-  project,
-  onClose,
-  onSuccess,
-}: EditProjectModalProps) {
-  const [formData, setFormData] = useState({
-    name: project.name,
-    description: project.description || "",
-    status: project.status,
-    color: project.color || "#3B82F6",
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(`/api/projects/${project.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        onSuccess();
-      } else {
-        setError(data.error || "Failed to update project");
-      }
-    } catch (err) {
-      setError("An error occurred while updating the project");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const colorOptions = [
-    "#3B82F6",
-    "#10B981",
-    "#8B5CF6",
-    "#F59E0B",
-    "#EF4444",
-    "#06B6D4",
-    "#EC4899",
-    "#84CC16",
-  ];
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Edit Project
-          </h2>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-4">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Project Name *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) =>
-                  setFormData({ ...formData, status: e.target.value as any })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="ACTIVE">Active</option>
-                <option value="ON_HOLD">On Hold</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="ARCHIVED">Archived</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Color
-              </label>
-              <div className="flex gap-2">
-                {colorOptions.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, color })}
-                    className={`w-8 h-8 rounded-full border-2 ${
-                      formData.color === color
-                        ? "border-gray-400"
-                        : "border-gray-200"
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {loading ? "Updating..." : "Update Project"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-}

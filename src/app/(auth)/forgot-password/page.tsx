@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, FormEvent } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,208 +12,93 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [step, setStep] = useState(1); // 1:email, 2:OTP and new password
-  const [sendingOtp, setSendingOtp] = useState(false);
   const [success, setSuccess] = useState("");
-  const router = useRouter();
 
-  async function handleSendOtp() {
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
     if (!email) {
       setError("Please enter your email");
       return;
     }
 
-    setSendingOtp(true);
+    setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
-      const response = await axios.post("/api/auth/send-otp", {
+      const response = await axios.post("/api/auth/send-verification", {
         email,
         type: "PASSWORD_RESET",
       });
 
       if (response.data.success) {
-        setStep(2);
-        setError("");
+        setSuccess("Password reset link sent! Please check your inbox.");
+        setEmail("");
       }
-    } catch (error: unknown) {
-      setError((error as any)?.response?.data?.message || "Failed to send OTP");
-    } finally {
-      setSendingOtp(false);
-    }
-  }
-
-  async function handleResetPassword() {
-    if (!email || !otp || !newPassword || !confirmPassword) {
-      setError("Please fill in all fields");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await axios.post("/api/auth/reset-password", {
-        email,
-        otp,
-        newPassword,
-      });
-
-      if (response.data.success) {
-        setSuccess("Password reset successfully! Signing you in...");
-
-        // Auto-signin using NextAuth with new password
-        const result = await signIn("credentials", {
-          email,
-          password: newPassword,
-          redirect: false,
-        });
-
-        if (result?.ok) {
-          setTimeout(() => {
-            router.push("/dashboard");
-          }, 1500);
-        } else {
-          // Fallback to signin page if auto-signin fails
-          setTimeout(() => {
-            router.push("/signin?message=Password reset successfully");
-          }, 2000);
-        }
-      }
-    } catch (error: unknown) {
-      setError(
-        (error as any)?.response?.data?.message || "Password reset failed"
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      setError(error.response?.data?.message || "Failed to send reset link");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="max-w-md mx-auto mt-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Reset Password</CardTitle>
-          <CardDescription className="text-center">
-            {step === 1
-              ? "Enter your email address and we'll send you an OTP to reset your password."
-              : "Enter the OTP and your new password"}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/30 px-4">
+      <Card className="w-full max-w-[420px] shadow-sm border-gray-100">
+        <CardHeader className="space-y-4 pt-10 px-10 pb-0">
+          <CardTitle className="text-2xl text-center font-semibold tracking-tight">Reset Password</CardTitle>
+          <CardDescription className="text-center text-sm text-gray-500">
+            Enter your email address and we&apos;ll send you a link to reset your password.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-10 space-y-6">
           {error && (
-            <div className="p-4 rounded-md mb-4 text-sm bg-red-50 border border-red-200 text-red-800">
+            <div className="p-4 rounded-lg mb-4 text-sm bg-red-50 text-red-600">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="p-4 rounded-md mb-4 text-sm bg-green-50 border border-green-200 text-green-800">
+            <div className="p-4 rounded-lg mb-4 text-sm bg-green-50 text-green-600">
               {success}
             </div>
           )}
 
-          {step === 1 && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={sendingOtp}
-                />
-              </div>
-
-              <Button
-                onClick={handleSendOtp}
-                disabled={sendingOtp}
-                className="w-full"
-              >
-                {sendingOtp ? "Sending OTP..." : "Send OTP"}
-              </Button>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-md mb-4 text-sm bg-green-50 border border-green-200 text-green-800">
-                OTP sent to {email}! Please check your inbox.
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="otp">OTP Code</Label>
-                <Input
-                  id="otp"
-                  type="text"
-                  placeholder="Enter OTP"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  placeholder="New Password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Confirm New Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <Button
-                onClick={handleResetPassword}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
-                className="w-full"
-              >
-                {loading ? "Resetting Password..." : "Reset Password"}
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => setStep(1)}
-                className="w-full"
-              >
-                Back to Email
-              </Button>
+                className="h-10"
+              />
             </div>
-          )}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-10 font-medium"
+            >
+              {loading ? "Sending Link..." : "Send Reset Link"}
+            </Button>
+
+            <div className="text-center text-sm">
+              <Link href="/signin" className="text-blue-600 font-medium hover:text-blue-800 hover:underline">
+                Back to Sign In
+              </Link>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

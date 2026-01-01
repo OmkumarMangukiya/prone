@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prismaClient'
+import 'dotenv/config'
 import bcrypt from 'bcryptjs'
-
-const prisma = new PrismaClient()
 
 async function main() {
     console.log('🌱 Seeding database...')
@@ -41,6 +40,8 @@ async function main() {
             email: 'admin@example.com',
             name: 'Admin User',
             password: hashedPassword,
+            emailVerified: new Date(),
+            avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=random',
         },
     })
 
@@ -51,6 +52,8 @@ async function main() {
             email: 'demo@example.com',
             name: 'Demo User',
             password: hashedPassword,
+            emailVerified: new Date(),
+            avatar: 'https://ui-avatars.com/api/?name=Demo+User&background=random',
         },
     })
 
@@ -60,8 +63,12 @@ async function main() {
             name: 'Demo Project',
             description: 'A sample project to get you started',
             status: 'ACTIVE',
-            color: '#3B82F6',
-            ownerId: adminUser.id,
+            category: {
+                connect: { name: 'Software Development' }
+            },
+            owner: {
+                connect: { id: adminUser.id }
+            },
             members: {
                 create: [
                     {
@@ -155,6 +162,43 @@ async function main() {
             type: 'PROJECT_INVITE',
             userId: demoUser.id,
         },
+    })
+
+    // Create Task Dependency
+    await prisma.taskDependency.create({
+        data: {
+            taskId: tasks[2].id, // Implementation depends on
+            dependsOnId: tasks[0].id, // Project setup
+        }
+    })
+
+
+
+    // Create Time Entry
+    await prisma.timeEntry.create({
+        data: {
+            description: 'Initial project setup and configuration',
+            duration: 120, // 2 hours
+            startTime: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
+            endTime: new Date(Date.now() - 22 * 60 * 60 * 1000),
+            taskId: tasks[0].id,
+            userId: adminUser.id,
+        }
+    })
+
+
+
+    // Create Account (Linked to Demo User) - Simulating Google Auth
+    await prisma.account.create({
+        data: {
+            userId: demoUser.id,
+            type: 'oauth',
+            provider: 'google',
+            providerAccountId: '1234567890',
+            access_token: 'mock_access_token',
+            token_type: 'Bearer',
+            scope: 'https://www.googleapis.com/auth/userinfo.email',
+        }
     })
 
     console.log('✅ Database seeded successfully!')
