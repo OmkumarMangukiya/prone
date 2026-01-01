@@ -191,7 +191,7 @@ export default function TaskCard({
                                 }`}
                         >
                             <Calendar className="w-3 h-3" />
-                            <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+                            <span suppressHydrationWarning>{new Date(task.dueDate).toLocaleDateString()}</span>
                             {isOverdue && (
                                 <span className="text-red-600 font-medium">⚠️</span>
                             )}

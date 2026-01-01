@@ -110,7 +110,7 @@ export default function ProjectCard({
                                 {project._count.members} members
                             </span>
                         </div>
-                        <span>{new Date(project.updatedAt).toLocaleDateString()}</span>
+                        <span suppressHydrationWarning>{new Date(project.updatedAt).toLocaleDateString()}</span>
                     </div>
                 </>
             ) : (
@@ -139,7 +139,7 @@ export default function ProjectCard({
                         </Badge>
                         <span>{project._count.tasks} tasks</span>
                         <span>{project._count.members} members</span>
-                        <span>{new Date(project.updatedAt).toLocaleDateString()}</span>
+                        <span suppressHydrationWarning>{new Date(project.updatedAt).toLocaleDateString()}</span>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm">

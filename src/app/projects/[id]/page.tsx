@@ -268,7 +268,7 @@ export default function ProjectPage() {
                   {getStatusIcon(project.status)}
                   {project.status.replace("_", " ")}
                 </span>
-                <span className="text-gray-500 text-sm">
+                <span suppressHydrationWarning className="text-gray-500 text-sm">
                   Created {new Date(project.createdAt).toLocaleDateString()}
                 </span>
               </div>
@@ -400,7 +400,7 @@ export default function ProjectPage() {
 
                   <div className="text-xs text-gray-500 flex justify-between items-center">
                     <span>Created</span>
-                    <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                    <span suppressHydrationWarning>{new Date(project.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>

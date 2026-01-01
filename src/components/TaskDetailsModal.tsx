@@ -151,6 +151,7 @@ export default function TaskDetailsModal({
         return (
             <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
                 <DialogContent className="sm:max-w-md">
+                    <DialogTitle className="sr-only">Loading Task Details</DialogTitle>
                     <div className="flex items-center justify-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     </div>
@@ -164,7 +165,7 @@ export default function TaskDetailsModal({
             <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
                 <DialogContent className="sm:max-w-md">
                     <div className="text-center py-4">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error</h3>
+                        <DialogTitle className="text-lg font-semibold text-gray-900 mb-2">Error</DialogTitle>
                         <p className="text-gray-600 mb-6">{error || "Task not found"}</p>
                         <Button onClick={onClose}>Close</Button>
                     </div>
@@ -257,7 +258,7 @@ export default function TaskDetailsModal({
                                                 <span className="text-sm font-semibold text-gray-900">
                                                     {comment.author.name || comment.author.email}
                                                 </span>
-                                                <span className="text-xs text-gray-500">
+                                                <span suppressHydrationWarning className="text-xs text-gray-500">
                                                     {new Date(comment.createdAt).toLocaleString(undefined, {
                                                         month: "short",
                                                         day: "numeric",
@@ -325,11 +326,11 @@ export default function TaskDetailsModal({
                                 {task.dueDate ? (
                                     <div className="flex items-center gap-2 text-sm text-gray-900">
                                         <Calendar className="w-4 h-4 text-gray-400" />
-                                        {new Date(task.dueDate).toLocaleDateString(undefined, {
+                                        <span suppressHydrationWarning>{new Date(task.dueDate).toLocaleDateString(undefined, {
                                             month: "long",
                                             day: "numeric",
                                             year: "numeric",
-                                        })}
+                                        })}</span>
                                     </div>
                                 ) : (
                                     <span className="text-sm text-gray-500">No due date</span>
@@ -343,7 +344,7 @@ export default function TaskDetailsModal({
                         <div className="space-y-3">
                             <div className="flex items-center justify-between text-xs text-gray-500">
                                 <span>Created</span>
-                                <span>{new Date(task.createdAt).toLocaleDateString(undefined, {
+                                <span suppressHydrationWarning>{new Date(task.createdAt).toLocaleDateString(undefined, {
                                     month: "short",
                                     day: "numeric",
                                     year: "numeric",
@@ -351,7 +352,7 @@ export default function TaskDetailsModal({
                             </div>
                             <div className="flex items-center justify-between text-xs text-gray-500">
                                 <span>Updated</span>
-                                <span>{new Date(task.updatedAt).toLocaleDateString(undefined, {
+                                <span suppressHydrationWarning>{new Date(task.updatedAt).toLocaleDateString(undefined, {
                                     month: "short",
                                     day: "numeric",
                                     year: "numeric",

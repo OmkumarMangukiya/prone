@@ -223,11 +223,11 @@ export default function ProfilePage() {
                     <img
                       src={session.user.image || profileData.avatar}
                       alt="Profile"
-                      className="w-16 h-16 rounded-full object-cover"
+                      className="w-16 h-16 rounded-full object-cover shrink-0"
                       key={session.user.image || profileData.avatar} // Force re-render on change
                     />
                   ) : (
-                    <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl shrink-0">
                       {(session.user.name || session.user.email || "U")
                         .charAt(0)
                         .toUpperCase()}
@@ -237,7 +237,7 @@ export default function ProfilePage() {
                     <h3 className="font-semibold text-gray-800">
                       {session.user.name || "No name set"}
                     </h3>
-                    <p className="text-gray-600">{session.user.email}</p>
+                    <p className="text-gray-600 break-all">{session.user.email}</p>
                   </div>
                 </div>
 
@@ -256,7 +256,7 @@ export default function ProfilePage() {
                         <span className="text-sm font-medium text-gray-700">
                           Member since:
                         </span>
-                        <span className="ml-2 text-sm text-gray-600">
+                        <span suppressHydrationWarning className="ml-2 text-sm text-gray-600">
                           {formatDate(userInfo.createdAt)}
                         </span>
                       </div>
@@ -388,7 +388,7 @@ export default function ProfilePage() {
                 <div className="mt-6 pt-4 border-t border-gray-200">
                   <p className="text-sm text-gray-500">
                     Member since{" "}
-                    <span className="font-medium text-gray-800">
+                    <span suppressHydrationWarning className="font-medium text-gray-800">
                       {formatDate(userInfo.createdAt)}
                     </span>
                   </p>
