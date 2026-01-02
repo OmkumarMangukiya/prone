@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../../../lib/auth";
-import { prisma } from "../../../../../lib/prismaClient";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prismaClient";
 import { z } from "zod";
 
 // Schema for profile update validation

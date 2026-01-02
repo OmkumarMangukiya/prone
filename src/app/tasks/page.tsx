@@ -71,6 +71,7 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [projectFilter, setProjectFilter] = useState("all");
+  const [assigneeFilter, setAssigneeFilter] = useState("my_tasks");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -89,7 +90,7 @@ export default function TasksPage() {
     if (projects.length > 0) {
       fetchAllTasks();
     }
-  }, [projects, statusFilter, priorityFilter, projectFilter]);
+  }, [projects, statusFilter, priorityFilter, projectFilter, assigneeFilter]);
 
   const fetchProjects = async () => {
     try {
@@ -112,6 +113,9 @@ export default function TasksPage() {
         const params = new URLSearchParams({
           projectId: project.id,
           ...(statusFilter !== "all" && { status: statusFilter }),
+          ...(assigneeFilter === "my_tasks" && session?.user?.id
+            ? { assigneeId: session.user.id }
+            : {}),
         });
 
         const response = await fetch(`/api/tasks?${params}`);
@@ -416,6 +420,24 @@ export default function TasksPage() {
                     </Select>
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Assignee
+                    </label>
+                    <Select
+                      value={assigneeFilter}
+                      onValueChange={setAssigneeFilter}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="my_tasks">My Tasks</SelectItem>
+                        <SelectItem value="all">All Tasks</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="flex items-end">
                     <Button
                       variant="outline"
@@ -424,6 +446,7 @@ export default function TasksPage() {
                         setStatusFilter("all");
                         setPriorityFilter("all");
                         setProjectFilter("all");
+                        setAssigneeFilter("my_tasks");
                       }}
                       className="w-full"
                     >

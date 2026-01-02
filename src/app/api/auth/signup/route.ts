@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import { prisma } from "../../../../../lib/prismaClient";
+import { prisma } from "@/lib/prismaClient";
 import { NextResponse } from "next/server";
-import { sendEmail, emailTemplates } from "../../../../../lib/emailService";
-import { generateToken } from "../../../../../lib/tokens";
+import { sendEmail, emailTemplates } from "@/lib/emailService";
+import { generateToken } from "@/lib/tokens";
 
 export async function POST(request: Request) {
     try {

@@ -176,9 +176,9 @@ export default function TaskDetailsModal({
 
     return (
         <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-4xl h-[85vh] p-0 flex flex-col gap-0 overflow-hidden">
+            <DialogContent className="sm:max-w-4xl h-[85vh] p-0 flex flex-col gap-0 overflow-hidden">
                 <DialogHeader className="p-6 border-b border-gray-100 bg-white/50 shrink-0">
-                    <div className="flex items-center justify-between pr-8">
+                    <div className="flex items-center justify-between pr-6">
                         <div className="flex items-center gap-3">
                             <Badge
                                 variant="outline"
@@ -283,7 +283,7 @@ export default function TaskDetailsModal({
                     </div>
 
                     {/* Sidebar */}
-                    <div className="w-full md:w-80 bg-gray-50/50 border-t md:border-t-0 md:border-l border-gray-100 p-6 space-y-6 overflow-y-auto">
+                    <div className="w-full md:w-72 bg-gray-50/50 border-t md:border-t-0 md:border-l border-gray-100 p-6 space-y-6 overflow-y-auto">
                         {/* Status & Priority */}
                         <div className="space-y-4">
                             <div>

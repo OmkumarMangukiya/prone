@@ -57,10 +57,7 @@ export default function Dashboard() {
     (sum, project) => sum + project._count.tasks,
     0
   );
-  const totalMembers = projects.reduce(
-    (sum, project) => sum + project._count.members,
-    0
-  );
+
 
   if (status === "loading" || statsLoading) {
     return (
@@ -128,21 +125,7 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => router.push("/team")}
-              >
-                <CardContent className="p-6">
-                  <CardTitle className="text-xl mb-4">Collaboration</CardTitle>
-                  <p className="text-muted-foreground mb-4">
-                    Work together with your team in real-time.
-                  </p>
-                  <div className="flex justify-between text-sm">
-                    <span>{totalMembers} Team Members</span>
-                    <span>View All →</span>
-                  </div>
-                </CardContent>
-              </Card>
+
             </div>
 
           </CardContent>

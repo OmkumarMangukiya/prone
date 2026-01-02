@@ -17,8 +17,16 @@ import {
   Trash2,
   Plus,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import TaskManagement from "../../../components/TaskManagement";
 import EditProjectModal from "@/components/EditProjectModal";
+import InviteMemberModal from "@/components/InviteMemberModal";
 
 interface Project {
   id: string;
@@ -86,6 +94,7 @@ export default function ProjectPage() {
   const [error, setError] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -183,6 +192,20 @@ export default function ProjectPage() {
     return project.owner.id === session.user.id || userRole === "ADMIN";
   };
 
+  const canCreateContent = () => {
+    if (!project || !session?.user) return false;
+    const userRole = project.members.find(
+      (m) => m.user.id === session.user.id
+    )?.role;
+    return (
+      project.owner.id === session.user.id ||
+      userRole === "ADMIN" ||
+      userRole === "MEMBER"
+    );
+  };
+
+  const isOwner = project?.owner.id === session?.user?.id;
+
   const handleDeleteProject = async () => {
     if (
       !confirm(
@@ -205,6 +228,48 @@ export default function ProjectPage() {
       }
     } catch (err) {
       setError("An error occurred while deleting the project");
+    }
+  };
+
+  const handleRemoveMember = async (userId: string) => {
+    if (!confirm("Are you sure you want to remove this member?")) return;
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/members`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (response.ok) {
+        fetchProject();
+      } else {
+        const data = await response.json();
+        alert(data.error || "Failed to remove member");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to remove member");
+    }
+  };
+
+  const handleUpdateRole = async (userId: string, newRole: string) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/members/update`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, role: newRole }),
+      });
+
+      if (response.ok) {
+        fetchProject();
+      } else {
+        const data = await response.json();
+        alert(data.error || "Failed to update role");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update role");
     }
   };
 
@@ -338,7 +403,7 @@ export default function ProjectPage() {
             <TaskManagement
               projectId={project.id}
               members={project.members}
-              canCreateTasks={canEditProject()}
+              canCreateTasks={canCreateContent()}
             />
           </div>
 
@@ -412,33 +477,68 @@ export default function ProjectPage() {
                 <h3 className="text-base font-semibold text-gray-900">
                   Team Members
                 </h3>
-                <button className="text-blue-600 hover:text-blue-700 text-sm">
-                  <Plus className="w-4 h-4" />
-                </button>
+                {(isOwner || canEditProject()) && (
+                  <button
+                    onClick={() => setShowInviteModal(true)}
+                    className="text-blue-600 hover:text-blue-700 text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                )}
               </div>
               <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
                 {project.members.map((member) => (
-                  <div key={member.id} className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      {member.user.avatar ? (
-                        <img
-                          src={member.user.avatar}
-                          alt={member.user.name}
-                          className="w-8 h-8 rounded-full"
-                        />
-                      ) : (
-                        <span className="text-xs font-medium text-gray-600">
-                          {member.user.name?.charAt(0) ||
-                            member.user.email.charAt(0)}
-                        </span>
-                      )}
+                  <div key={member.id} className="flex items-center gap-2 justify-between group">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        {member.user.avatar ? (
+                          <img
+                            src={member.user.avatar}
+                            alt={member.user.name}
+                            className="w-8 h-8 rounded-full"
+                          />
+                        ) : (
+                          <span className="text-xs font-medium text-gray-600">
+                            {member.user.name?.charAt(0) ||
+                              member.user.email.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {member.user.name || member.user.email}
+                        </p>
+                        {/* Only show role change if user has permission and target is not owner */}
+                        {(isOwner || canEditProject()) && member.user.id !== project.owner.id ? (
+                          <div className="h-6">
+                            <Select
+                              value={member.role}
+                              onValueChange={(val) => handleUpdateRole(member.user.id, val)}
+                            >
+                              <SelectTrigger className="h-6 text-xs w-[100px] p-1 border-gray-200">
+                                <SelectValue placeholder={member.role} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="ADMIN">Admin</SelectItem>
+                                <SelectItem value="MEMBER">Member</SelectItem>
+                                <SelectItem value="VIEWER">Viewer</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500">{member.role}</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {member.user.name || member.user.email}
-                      </p>
-                      <p className="text-xs text-gray-500">{member.role}</p>
-                    </div>
+                    {isOwner && member.user.id !== project.owner.id && (
+                      <button
+                        onClick={() => handleRemoveMember(member.user.id)}
+                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove member"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -458,9 +558,19 @@ export default function ProjectPage() {
             }}
           />
         )}
+
+        {/* Invite Member Modal */}
+        {showInviteModal && (
+          <InviteMemberModal
+            projectId={projectId}
+            onClose={() => setShowInviteModal(false)}
+            onSuccess={() => {
+              setShowInviteModal(false);
+              fetchProject();
+            }}
+          />
+        )}
       </div>
     </div>
   );
 }
-
-

@@ -166,23 +166,20 @@ sequenceDiagram
 
 - **Owner**: Can create tasks
 - **Admin**: Can create tasks
-- **Manager**: Can create tasks
-- **Member**: Cannot create tasks
+- **Member**: Can create tasks
 - **Viewer**: Cannot create tasks
 
 ### Task Editing
 
 - **Owner**: Can edit all tasks
 - **Admin**: Can edit all tasks
-- **Manager**: Can edit all tasks
-- **Member**: Cannot edit tasks
+- **Member**: Can edit tasks
 - **Viewer**: Cannot edit tasks
 
 ### Task Deletion
 
 - **Owner**: Can delete all tasks
 - **Admin**: Can delete all tasks
-- **Manager**: Cannot delete tasks
 - **Member**: Cannot delete tasks
 - **Viewer**: Cannot delete tasks
 
@@ -277,9 +274,9 @@ The task system uses the existing Prisma schema with these key models:
 | Method | Endpoint                    | Description        | Permission Required |
 | ------ | --------------------------- | ------------------ | ------------------- |
 | GET    | `/api/tasks?projectId={id}` | List project tasks | Project member      |
-| POST   | `/api/tasks`                | Create new task    | Owner/Admin/Manager |
+| POST   | `/api/tasks`                | Create new task    | Owner/Admin/Member  |
 | GET    | `/api/tasks/{id}`           | Get task details & comments | Project member      |
-| PUT    | `/api/tasks/{id}`           | Update task        | Owner/Admin/Manager |
+| PUT    | `/api/tasks/{id}`           | Update task        | Owner/Admin/Member  |
 | DELETE | `/api/tasks/{id}`           | Delete task        | Owner/Admin         |
 
 ## Integration

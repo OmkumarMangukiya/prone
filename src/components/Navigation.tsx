@@ -49,7 +49,6 @@ export default function Navigation() {
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Projects", href: "/projects", icon: FolderOpen },
     { name: "Tasks", href: "/tasks", icon: CheckSquare },
-    { name: "Team", href: "/team", icon: Users },
   ];
 
   const isActive = (href: string) => {

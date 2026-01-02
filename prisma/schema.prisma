@@ -229,7 +229,6 @@ enum ProjectStatus {
 enum ProjectRole {
   OWNER
   ADMIN
-  MANAGER
   MEMBER
   VIEWER
 }

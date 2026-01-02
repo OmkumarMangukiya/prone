@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../../../lib/auth";
-import { prisma } from "../../../../../lib/prismaClient";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prismaClient";
 import { z } from "zod";
 
 // Schema for task update validation
@@ -137,7 +137,7 @@ export async function PUT(
                             members: {
                                 some: {
                                     userId: session.user.id,
-                                    role: { in: ["OWNER", "ADMIN", "MANAGER"] },
+                                    role: { in: ["OWNER", "ADMIN", "MEMBER"] },
                                 },
                             },
                         },

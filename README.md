@@ -151,7 +151,7 @@ prone/
 - User Preferences - Personalized settings, notification preferences
 - Activity Status - Online/offline status indicators
 - User Search - Find and connect with other users
-- User Roles - Admin, Project Manager, Team Member, Viewer roles
+- User Roles - Admin, Member, Viewer roles
 - Permission Management - Basic permission controls
 - Project-Level Permissions - Role assignments per project
 - Activity Tracking - Basic user activity logs
