@@ -20,7 +20,7 @@ export async function PATCH(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const projectId = (await params).id;
+        const projectId = (params).id;
         const body = await req.json();
 
         const validationResult = updateRoleSchema.safeParse(body);

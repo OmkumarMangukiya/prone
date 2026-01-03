@@ -13,7 +13,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const projectId = (await params).id;
+        const projectId = (params).id;
         const { userId } = await req.json(); // ID of the user to remove
 
         if (!userId) {

@@ -513,7 +513,7 @@ export default function ProjectPage() {
                           <div className="h-6">
                             <Select
                               value={member.role}
-                              onValueChange={(val) => handleUpdateRole(member.user.id, val)}
+                              onValueChange={(val) => { void handleUpdateRole(member.user.id, val) }}
                             >
                               <SelectTrigger className="h-6 text-xs w-[100px] p-1 border-gray-200">
                                 <SelectValue placeholder={member.role} />
@@ -532,7 +532,9 @@ export default function ProjectPage() {
                     </div>
                     {isOwner && member.user.id !== project.owner.id && (
                       <button
-                        onClick={() => handleRemoveMember(member.user.id)}
+                        onClick={() => {
+                          void handleRemoveMember(member.user.id);
+                        }}
                         className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Remove member"
                       >
@@ -563,7 +565,7 @@ export default function ProjectPage() {
         {showInviteModal && (
           <InviteMemberModal
             projectId={projectId}
-            onClose={() => setShowInviteModal(false)}
+            onClose={() => { setShowInviteModal(false) }}
             onSuccess={() => {
               setShowInviteModal(false);
               fetchProject();

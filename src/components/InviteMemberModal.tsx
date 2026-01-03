@@ -74,7 +74,11 @@ export default function InviteMemberModal({
                         Enter the email address of the user you want to invite to this project.
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit}>
+                <form
+                    onSubmit={(e) => {
+                        void handleSubmit(e);
+                    }}
+                >
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="email">Email address</Label>
