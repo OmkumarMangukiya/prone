@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -13,11 +12,11 @@ import {
   ChevronDown,
   Search,
   Plus,
+  Edit2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -27,6 +26,8 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import TaskDetailsModal from "@/components/TaskDetailsModal";
+import EditTaskModal from "@/components/EditTaskModal";
+import { User as UserType } from "@/types";
 
 interface Task {
   id: string;
@@ -59,6 +60,12 @@ interface Project {
   status: string;
 }
 
+interface ProjectMember {
+  id: string;
+  role: string;
+  user: UserType;
+}
+
 export default function TasksPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -74,6 +81,10 @@ export default function TasksPage() {
   const [assigneeFilter, setAssigneeFilter] = useState("my_tasks");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+
+  // Edit Task State
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTaskMembers, setEditingTaskMembers] = useState<ProjectMember[]>([]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -248,6 +259,34 @@ export default function TasksPage() {
       }
     } catch (err) {
       console.error("Failed to update task status:", err);
+    }
+  };
+
+  const handleEditClick = async (task: Task, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening details modal
+    try {
+      // Fetch project details to check permissions and get members
+      const response = await fetch(`/api/projects/${task.project.id}`);
+      const data = await response.json();
+
+      if (response.ok && data.project) {
+        const project = data.project;
+        const currentMember = project.members.find((m: ProjectMember) => m.user.id === session?.user?.id);
+        const isOwner = project.owner.id === session?.user?.id;
+
+        // Check permissions: Owner, Admin, or Member can edit tasks
+        const canEdit = isOwner ||
+          (currentMember && ["ADMIN", "MEMBER"].includes(currentMember.role));
+
+        if (canEdit) {
+          setEditingTask(task);
+          setEditingTaskMembers(project.members);
+        } else {
+          alert("You do not have permission to edit tasks in this project.");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch project details for editing:", error);
     }
   };
 
@@ -496,7 +535,7 @@ export default function TasksPage() {
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="p-6 hover:bg-gray-50 transition-colors cursor-pointer group"
                   onClick={() => setSelectedTaskId(task.id)}
                 >
                   <div className="flex items-start justify-between">
@@ -560,7 +599,7 @@ export default function TasksPage() {
                       </div>
                     </div>
 
-                    <div className="ml-6 flex-shrink-0">
+                    <div className="ml-6 flex items-center gap-4 flex-shrink-0">
                       <select
                         value={task.status}
                         onChange={(e) => {
@@ -575,6 +614,15 @@ export default function TasksPage() {
                         <option value="IN_REVIEW">In Review</option>
                         <option value="DONE">Done</option>
                       </select>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => handleEditClick(task, e)}
+                      >
+                        <Edit2 className="w-4 h-4 text-gray-500" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -588,6 +636,18 @@ export default function TasksPage() {
         <TaskDetailsModal
           taskId={selectedTaskId}
           onClose={() => setSelectedTaskId(null)}
+        />
+      )}
+
+      {editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          members={editingTaskMembers}
+          onClose={() => setEditingTask(null)}
+          onSuccess={() => {
+            setEditingTask(null);
+            fetchAllTasks();
+          }}
         />
       )}
     </div>
