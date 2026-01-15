@@ -37,6 +37,21 @@ export default function Signup() {
       setError("Please fill in all fields");
       return;
     }
+
+    // Password validation
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+    if (password.length > 18) {
+      setError("Password must be less than 18 characters long");
+      return;
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      setError("Password must contain at least one uppercase letter, one lowercase letter, and one number");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       return;

@@ -4,16 +4,31 @@ import { NextResponse } from "next/server";
 import { sendEmail, emailTemplates } from "@/lib/emailService";
 import { generateToken } from "@/lib/tokens";
 
+import { z } from "zod";
+
+const signupSchema = z.object({
+    email: z.string().email("Invalid email address"),
+    name: z.string().min(1, "Name is required"),
+    password: z.string()
+        .min(8, "Password must be at least 8 characters")
+        .max(18, "Password must be less than 18 characters")
+        .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one uppercase letter, one lowercase letter, and one number"),
+});
+
 export async function POST(request: Request) {
     try {
-        const { email, password, name } = await request.json();
+        const body = await request.json();
 
-        if (!email || !password) {
+        // Validate request body
+        const validationResult = signupSchema.safeParse(body);
+        if (!validationResult.success) {
             return NextResponse.json(
-                { success: false, message: "Email and password are required" },
+                { success: false, message: validationResult.error.issues[0].message },
                 { status: 400 }
             );
         }
+
+        const { email, password, name } = validationResult.data;
 
         // Check if user already exists
         const existingUser = await prisma.user.findUnique({

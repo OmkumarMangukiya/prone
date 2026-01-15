@@ -360,16 +360,6 @@ export default function ProjectPage() {
                           <Edit2 className="w-4 h-4" />
                           Edit Project
                         </button>
-                        <button
-                          onClick={() => {
-                            setShowSettings(false);
-                            // Open settings modal
-                          }}
-                          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          <Settings className="w-4 h-4" />
-                          Project Settings
-                        </button>
                       </>
                       {project.owner.id === session?.user?.id && (
                         <button

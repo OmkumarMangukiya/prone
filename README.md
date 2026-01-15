@@ -32,7 +32,6 @@ Prone is a modern, feature-rich project management tool built with Next.js 14, d
 - **react-hook-form** - Form management
 - **react-query/TanStack Query** - Data fetching
 - **recharts** or **Chart.js** - Data visualization
-- **react-calendar** - Calendar components
 - **lucide-react** - Icons
 
 #### Email & Notifications
@@ -149,28 +148,17 @@ prone/
 - Profile Creation - User profiles with avatars, bio, contact info
 - Profile Updates - Self-service profile editing
 - User Preferences - Personalized settings, notification preferences
-- Activity Status - Online/offline status indicators
-- User Search - Find and connect with other users
 - User Roles - Admin, Member, Viewer roles
 - Permission Management - Basic permission controls
 - Project-Level Permissions - Role assignments per project
-- Activity Tracking - Basic user activity logs
+
 
 ### Project Management
 
 - Create New Project - Project setup with name, description, objectives
-- Project Templates - Pre-built templates for different project types
-- Project Duplication - Clone existing projects
-- Project Settings - Configure project parameters and defaults
-- Project Status - Active, on hold, completed, archived states
 - Project Categories - Organize projects by type or department
 - Kanban Boards - Drag-and-drop task management
-- List View - Traditional task listing with sorting options
-- Calendar View - Timeline visualization of tasks and deadlines
-- Timeline/Gantt Charts - Basic project scheduling with dependencies
-- Board View - Card-based project organization
-- Table View - Spreadsheet-like data management
-- Activity Feed - Real-time project updates and changes
+
 
 ### Task Management
 
@@ -183,14 +171,11 @@ prone/
 - **Drag & Drop Interface** - Seamless task status updates using @hello-pangea/dnd library
 - **Task Filtering** - Filter by status, assignee, priority, and project with collapsible panel
 - **Cross-Project Task View** - Unified task dashboard across all projects
-- **Quick Status Updates** - Both drag-and-drop and inline dropdown status changes
 - **Task Search** - Search tasks by title and description
 - **Permission-Based Actions** - Role-based create, edit, and delete permissions
 - **Real-time Updates** - Optimistic UI updates with automatic refresh after modifications
-- **Enhanced Task Cards** - Comprehensive task information with drag handles, priority indicators, and metadata
-- **Responsive Design** - Mobile-friendly task management interface that adapts to screen size
+- **Enhanced Task Cards** - Comprehensive task information with drag handles, priority indicators
 - **Loading States** - Skeleton loading animations for better perceived performance
-- **Error Handling** - User-friendly error messages with retry mechanisms
 
 #### API Endpoints
 
@@ -207,50 +192,24 @@ prone/
 
 ### Collaboration Features
 
-- Real-Time Chat - Basic instant messaging within projects
-- Team Discussions - Threaded conversations
-- @Mentions - Tag team members in comments
+- Real-Time Chat - Basic instant messaging with users
 - Comments & Replies - Task-specific discussions
-- Emoji Reactions - Quick feedback on messages
-
-### Time Tracking & Resource Management
-
-- Manual Time Tracking - Log time spent on tasks
-- Basic Timesheet - Simple time reports
-- Workload View - Basic team capacity overview
-- Progress Tracking - Visual progress indicators
-- Burndown Charts - Track sprint/project progress
 
 ### Reporting & Analytics
 
 - Project Dashboards - Basic project metrics display
-- Progress Reports - Simple progress visualization
 - Task Statistics - Basic task completion metrics
-- Export Reports - CSV export for basic reports
 
-### Notification & Alert System
-
-- Task Assignments - Alert when assigned new tasks
-- Due Date Reminders - Deadline approaching notifications
-- Status Updates - Changes to task or project status
-- Comment Notifications - New comments on tasks
-- @Mention Alerts - When tagged in discussions
-- In-App Notifications - Real-time alerts within application
-- Email Notifications - Basic email alerts
-- Notification Preferences - Simple notification settings
 
 ### Search & Filtering
 
 - Basic Search - Search across projects and tasks
 - Filter Options - Basic filtering by status, assignee, priority
-- Date Range Filters - Time-based filtering
 - Tag-Based Filtering - Filter by labels
 
 ### Basic Integrations
 
 - Email Integration - Basic email notifications
-- Calendar Sync - Simple calendar integration
-- Data Export - Export projects in CSV/JSON format
 
 ## Backend Documentation
 
@@ -298,7 +257,7 @@ This section details the key directories and files that power the backend functi
 ### `/src/app/projects` - Project Management Pages (UI)
 
 - **`page.tsx`** - Project listing page with search, filtering, and grid/list views.
-- **`[id]/page.tsx`** - Individual project detail page with integrated task management, team members, and project settings.
+- **`[id]/page.tsx`** - Individual project detail page with integrated task management, and team members.
 
 ### `/src/app/tasks` - Task Management Pages (UI)
 
@@ -334,9 +293,6 @@ This section details the key directories and files that power the backend functi
 ### Security Features
 
 - Data Encryption - Basic data protection
-- Secure File Storage - Protected file management
-- Basic Audit Log - Track important system activities
-- Data Backup - Simple backup functionality
 
 ## Contributing
 

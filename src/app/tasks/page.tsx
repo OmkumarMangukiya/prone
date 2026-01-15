@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -70,7 +70,7 @@ export default function TasksPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [rawTasks, setRawTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -101,7 +101,7 @@ export default function TasksPage() {
     if (projects.length > 0) {
       fetchAllTasks();
     }
-  }, [projects, statusFilter, priorityFilter, projectFilter, assigneeFilter]);
+  }, [projects, statusFilter, assigneeFilter]);
 
   const fetchProjects = async () => {
     try {
@@ -141,62 +141,61 @@ export default function TasksPage() {
       const allTaskArrays = await Promise.all(taskPromises);
       const allTasks = allTaskArrays.flat();
 
-      // Apply additional filters
-      let filteredTasks = allTasks;
-
-      if (priorityFilter !== "all") {
-        filteredTasks = filteredTasks.filter(
-          (task) => task.priority === priorityFilter
-        );
-      }
-
-      if (projectFilter !== "all") {
-        filteredTasks = filteredTasks.filter(
-          (task) => task.project.id === projectFilter
-        );
-      }
-
-      if (searchTerm.trim()) {
-        filteredTasks = filteredTasks.filter(
-          (task) =>
-            task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (task.description &&
-              task.description.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-      }
-
-      // Sort by due date and priority
-      filteredTasks.sort((a, b) => {
-        // First, sort by due date (tasks with due dates first)
-        if (a.dueDate && !b.dueDate) return -1;
-        if (!a.dueDate && b.dueDate) return 1;
-        if (a.dueDate && b.dueDate) {
-          const dateA = new Date(a.dueDate);
-          const dateB = new Date(b.dueDate);
-          if (dateA.getTime() !== dateB.getTime()) {
-            return dateA.getTime() - dateB.getTime();
-          }
-        }
-
-        // Then sort by priority
-        const priorityOrder: Record<string, number> = {
-          URGENT: 0,
-          HIGH: 1,
-          MEDIUM: 2,
-          LOW: 3,
-        };
-        return (
-          (priorityOrder[a.priority] || 4) - (priorityOrder[b.priority] || 4)
-        );
-      });
-
-      setTasks(filteredTasks);
+      setRawTasks(allTasks);
     } catch (err) {
       setError("An error occurred while fetching tasks");
     } finally {
       setLoading(false);
     }
   };
+
+  const tasks = useMemo(() => {
+    let filtered = [...rawTasks];
+
+    if (priorityFilter !== "all") {
+      filtered = filtered.filter((task) => task.priority === priorityFilter);
+    }
+
+    if (projectFilter !== "all") {
+      filtered = filtered.filter((task) => task.project.id === projectFilter);
+    }
+
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(
+        (task) =>
+          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (task.description &&
+            task.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    // Sort by due date and priority
+    filtered.sort((a, b) => {
+      // First, sort by due date (tasks with due dates first)
+      if (a.dueDate && !b.dueDate) return -1;
+      if (!a.dueDate && b.dueDate) return 1;
+      if (a.dueDate && b.dueDate) {
+        const dateA = new Date(a.dueDate);
+        const dateB = new Date(b.dueDate);
+        if (dateA.getTime() !== dateB.getTime()) {
+          return dateA.getTime() - dateB.getTime();
+        }
+      }
+
+      // Then sort by priority
+      const priorityOrder: Record<string, number> = {
+        URGENT: 0,
+        HIGH: 1,
+        MEDIUM: 2,
+        LOW: 3,
+      };
+      return (
+        (priorityOrder[a.priority] || 4) - (priorityOrder[b.priority] || 4)
+      );
+    });
+
+    return filtered;
+  }, [rawTasks, priorityFilter, projectFilter, searchTerm]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -239,9 +238,9 @@ export default function TasksPage() {
     }
   };
 
-  const isOverdue = (dueDate?: string) => {
+  const isOverdue = (dueDate?: string, status?: string) => {
     if (!dueDate) return false;
-    return new Date(dueDate) < new Date();
+    return new Date(dueDate) < new Date() && status !== "DONE";
   };
 
   const handleTaskStatusUpdate = async (taskId: string, newStatus: string) => {
@@ -307,7 +306,7 @@ export default function TasksPage() {
     inProgress: tasks.filter((t) => t.status === "IN_PROGRESS").length,
     inReview: tasks.filter((t) => t.status === "IN_REVIEW").length,
     done: tasks.filter((t) => t.status === "DONE").length,
-    overdue: tasks.filter((t) => isOverdue(t.dueDate)).length,
+    overdue: tasks.filter((t) => isOverdue(t.dueDate, t.status)).length,
   };
 
   return (
@@ -545,7 +544,7 @@ export default function TasksPage() {
                         <h3 className="text-lg font-medium text-gray-900 truncate">
                           {task.title}
                         </h3>
-                        {isOverdue(task.dueDate) && (
+                        {isOverdue(task.dueDate, task.status) && (
                           <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded-full">
                             Overdue
                           </span>
