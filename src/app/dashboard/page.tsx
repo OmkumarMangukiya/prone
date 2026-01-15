@@ -6,12 +6,17 @@ import { useEffect, useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-
 // Types for project data
+interface Task {
+  id: string;
+  assigneeId: string | null;
+}
+
 interface Project {
   id: string;
   name: string;
   status: string;
+  tasks: Task[];
   _count: {
     tasks: number;
     members: number;
@@ -51,12 +56,14 @@ export default function Dashboard() {
     }
   };
 
-  // Calculate stats
   const activeProjects = projects.filter((p) => p.status === "ACTIVE").length;
-  const totalTasks = projects.reduce(
-    (sum, project) => sum + project._count.tasks,
-    0
-  );
+
+  const totalTasks = projects.reduce((sum, project) => {
+    const assignedTasks = project.tasks.filter(
+      (task) => task.assigneeId === session?.user?.id
+    );
+    return sum + assignedTasks.length;
+  }, 0);
 
 
   if (status === "loading" || statsLoading) {

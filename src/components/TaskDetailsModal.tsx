@@ -218,9 +218,6 @@ export default function TaskDetailsModal({
 
                             <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100">
                                 <form onSubmit={handlePostComment} className="flex gap-4">
-                                    <Avatar className="w-8 h-8 mt-1">
-                                        <AvatarFallback>ME</AvatarFallback>
-                                    </Avatar>
                                     <div className="flex-1">
                                         <textarea
                                             value={newComment}

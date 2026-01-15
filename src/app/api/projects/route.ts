@@ -82,6 +82,7 @@ export async function GET(request: NextRequest) {
                     select: {
                         id: true,
                         status: true,
+                        assigneeId: true,
                     },
                 },
                 _count: {

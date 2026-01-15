@@ -257,15 +257,17 @@ export default function TaskCard({
 
             {/* Edit Task Modal */}
             {showEditModal && (
-                <EditTaskModal
-                    task={task}
-                    members={members}
-                    onClose={() => setShowEditModal(false)}
-                    onSuccess={() => {
-                        setShowEditModal(false);
-                        onUpdate();
-                    }}
-                />
+                <div onClick={(e) => e.stopPropagation()}>
+                    <EditTaskModal
+                        task={task}
+                        members={members}
+                        onClose={() => setShowEditModal(false)}
+                        onSuccess={() => {
+                            setShowEditModal(false);
+                            onUpdate();
+                        }}
+                    />
+                </div>
             )}
         </Card>
     );

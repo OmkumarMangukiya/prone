@@ -338,17 +338,17 @@ export default function ProjectPage() {
                 </span>
               </div>
             </div>
-            <div className="relative">
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-              >
-                <MoreVertical className="w-5 h-5" />
-              </button>
-              {showSettings && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-10">
-                  <div className="py-1">
-                    {canEditProject() && (
+            {canEditProject() && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                >
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+                {showSettings && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-10">
+                    <div className="py-1">
                       <>
                         <button
                           onClick={() => {
@@ -371,23 +371,23 @@ export default function ProjectPage() {
                           Project Settings
                         </button>
                       </>
-                    )}
-                    {project.owner.id === session?.user?.id && (
-                      <button
-                        onClick={() => {
-                          setShowSettings(false);
-                          handleDeleteProject();
-                        }}
-                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Delete Project
-                      </button>
-                    )}
+                      {project.owner.id === session?.user?.id && (
+                        <button
+                          onClick={() => {
+                            setShowSettings(false);
+                            handleDeleteProject();
+                          }}
+                          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete Project
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
           {project.description && (
