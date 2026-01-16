@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   User,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,12 +24,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useChat } from "@/components/ChatProvider";
 
 export default function Navigation() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const { openChat } = useChat();
 
   // Don't show navigation on auth pages
   if (
@@ -95,15 +98,24 @@ export default function Navigation() {
           </div>
 
           {/* Right side - User menu */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             {status === "loading" ? (
               <div className="animate-pulse">
                 <div className="w-8 h-8 bg-muted rounded-full"></div>
               </div>
             ) : session ? (
               <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => openChat()}
+                  className="text-gray-500 hover:text-gray-900"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                </Button>
+
                 {/* Desktop User Menu */}
-                <div className="hidden md:ml-4 md:flex md:items-center">
+                <div className="hidden md:ml-2 md:flex md:items-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button

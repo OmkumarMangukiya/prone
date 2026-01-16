@@ -166,7 +166,7 @@ export default function TaskManagement({
         fetchTasks();
         setError("Failed to update task status");
       }
-    } catch (err) {
+    } catch (_err) {
       // Revert the optimistic update on error
       fetchTasks();
       setError("An error occurred while updating the task");

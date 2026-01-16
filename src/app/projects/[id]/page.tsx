@@ -16,6 +16,7 @@ import {
   Edit2,
   Trash2,
   Plus,
+  MessageCircle,
 } from "lucide-react";
 import {
   Select,
@@ -27,6 +28,7 @@ import {
 import TaskManagement from "../../../components/TaskManagement";
 import EditProjectModal from "@/components/EditProjectModal";
 import InviteMemberModal from "@/components/InviteMemberModal";
+import { useChat } from "@/components/ChatProvider";
 
 interface Project {
   id: string;
@@ -95,6 +97,7 @@ export default function ProjectPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const { openChat } = useChat();
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -495,9 +498,21 @@ export default function ProjectPage() {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {member.user.name || member.user.email}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {member.user.name || member.user.email}
+                          </p>
+                          {/* Chat Button */}
+                          {member.user.id !== session?.user?.id && (
+                            <button
+                              onClick={() => openChat(member.user.id)}
+                              className="p-1 text-gray-400 hover:text-blue-500 rounded-full hover:bg-blue-50 transition-colors"
+                              title="Send Message"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                         {/* Only show role change if user has permission and target is not owner */}
                         {(isOwner || canEditProject()) && member.user.id !== project.owner.id ? (
                           <div className="h-6">
